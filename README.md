@@ -32,7 +32,7 @@ SimDeblur(**Sim**ple **Deblur**ring) is a framework for image/video deblurring ,
 * CUDA 10.2+ 
 1. Clone the repositry or download the zip file
    ```git
-    git clone 
+    git clone https://github.com/ljzycmd/SimDeblur.git
    ```
 2. Install SimDeblur
    ```bash
