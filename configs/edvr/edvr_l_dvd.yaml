@@ -1,0 +1,45 @@
+name: "000_edvr_l_lr2e4_DVD_e651_B4G4_s"
+
+__base_cfg__: ./../../base_dvd.yaml
+
+model:
+    name: "EDVR"
+    num_in_ch: 3
+    num_out_ch: 3
+    num_feat: 128
+    num_frame: 5
+    deformable_groups: 8
+    num_extract_block: 5
+    num_reconstruct_block: 40
+    center_frame_idx: 2
+    hr_in: True
+    with_predeblur: True
+    with_tsa: True
+
+loss: 
+    name: CharbonnierLoss
+
+schedule: 
+    epochs: 651
+    val_epochs: 5
+    
+    optimizer:
+        name: "Adam"
+        lr: 0.0002
+        betas: [0.9, 0.99]
+        weight_decay: 0
+        
+    lr_scheduler:
+        name: "MultiStepLR"
+        milestones: [500, 600, 620]
+        gamma: 0.1
+
+logging: 
+    period: 20
+
+ckpt:
+    period: 10
+
+
+work_dir: "./workdir/edvr_l_dvd"
+resume_from: None

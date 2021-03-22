@@ -1,0 +1,7 @@
+cython
+numpy
+pyyaml
+scipy
+tensorboard
+easydict
+tqdm
