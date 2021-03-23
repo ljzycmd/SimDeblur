@@ -156,7 +156,7 @@ If SimDeblur helps your research or work, please consider citing SimDeblur.
 @misc{cao2021simdeblur,
   author =       {Mingdeng Cao},
   title =        {SimDeblur},
-  howpublished = {\url{https://github.com/xinntao/BasicSR}},
+  howpublished = {\url{https://github.com/ljzycmd/SimDeblur}},
   year =         {2021}
 }
 ```
