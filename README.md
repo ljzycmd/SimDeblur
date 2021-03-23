@@ -1,5 +1,19 @@
-# SimDeblur
-SimDeblur(**Sim**ple **Deblur**ring) is a framework for image/video deblurring , which implements most deep-learning based state-of-the-art algorithms in a modular way. It is easy for you to implement your own image/video deblurring or other restoration algorithms. 
+# <p align=center>`SimDeblur`</p>
+
+SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and video deblurring toolbox based on PyTorch, which contains most deep-learning based state-of-the-art deblurring algorithms. It is easy to implement your own image or video deblurring or other restoration algorithms. 
+
+### Major features
+
+- Modular Design
+
+The toolbox decomposes the deblurring framework into different components and one can easily construct a customized restoration framework by combining different modules.
+
+- State of the art
+The toolbox contains most deep-learning based state-of-the-art deblurring algorithms, including MSCNN, SRN, DeblurGAN, EDVR, *etc*.
+
+### New Features
+
+[2021/3/21] first release.
 
 ### Surpported Methods and Benchmarks
 
@@ -26,7 +40,7 @@ SimDeblur(**Sim**ple **Deblur**ring) is a framework for image/video deblurring ,
     - [x] DVD [[Paper](https://arxiv.org/abs/1611.08387), [Data](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/)]
     - [ ] REDS [[Paper](https://openaccess.thecvf.com/content_CVPRW_2019/html/NTIRE/Nah_NTIRE_2019_Challenge_on_Video_Deblurring_and_Super-Resolution_Dataset_and_CVPRW_2019_paper.html), [Data](https://seungjunnah.github.io/Datasets/reds)]
 
-### How to Use
+### Dependencies and Installation
 * Python 3 (Conda is recommended)
 * Pytorch 1.5.1 (with GPU)
 * CUDA 10.2+ 
@@ -125,11 +139,25 @@ print(criterion(x, y))
 And the optimizer and lr_scheduler also can be created by "build_optimizer" and "build_lr_scheduler" etc. 
 
 ### Dataset Description
+
 Click [here](./simdeblur/dataset/README.md) for more information. 
 
-
-If you have any question, please contact me at (caomingdeng AT outlook.com).
 ### Acknowledgment
+
 [1] facebookresearch. detectron2. https://github.com/facebookresearch/detectron2
 
-[2] subeeshvasu. Awesome-Deblurring. https://github.com/subeeshvasu/Awesome-Deblurring.
+[2] subeeshvasu. Awesome-Deblurring. https://github.com/subeeshvasu/Awesome-Deblurring
+
+### Citations
+
+If SimDeblur helps your research or work, please consider citing SimDeblur.
+
+```bibtex
+@misc{cao2021simdeblur,
+  author =       {Mingdeng Cao},
+  title =        {SimDeblur},
+  howpublished = {\url{https://github.com/xinntao/BasicSR}},
+  year =         {2021}
+}
+```
+If you have any question, please contact me at `caomingdeng AT outlook.com`.
