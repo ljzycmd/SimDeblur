@@ -9,7 +9,11 @@ SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and 
 The toolbox decomposes the deblurring framework into different components and one can easily construct a customized restoration framework by combining different modules.
 
 - State of the art
+
 The toolbox contains most deep-learning based state-of-the-art deblurring algorithms, including MSCNN, SRN, DeblurGAN, EDVR, *etc*.
+
+- Distributed Training
+
 
 ### New Features
 
@@ -76,9 +80,13 @@ cfg.args = args
 trainer = Trainer(cfg)
 trainer.train()
 ```
-Then start training with GPU:
+Then start training with single GPU:
 ```bash
 CUDA_VISIBLE_DEVICES=0 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 1
+```
+multi GPU training:
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 4
 ```
 
 ## 2 Build each module
@@ -94,7 +102,7 @@ dataset = build_dataset(edict({
     "sampling": "n_c",
     "overlapping": True,
     "interval": 1,
-    "root_gt": "/home/cmd/datasets/DVD/quantitative_datasets",
+    "root_gt": "./dataset/DVD/quantitative_datasets",
     "num_frames": 5,
     "augmentation": {
         "RandomCrop": {
@@ -160,4 +168,4 @@ If SimDeblur helps your research or work, please consider citing SimDeblur.
   year =         {2021}
 }
 ```
-If you have any question, please contact me at `caomingdeng AT outlook.com`.
+If you have any question, please contact me at `mingdengcao AT gmail.com`.
