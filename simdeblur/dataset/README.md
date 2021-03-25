@@ -24,7 +24,7 @@ loader: The configs for construct the dataloader.
 ## Detail Description
 **sampling**: The sample mode  generating the input frames and gt frames. "n_c", "n_n", "n_r", "n_l" are the general options implemented in SimDeblur. Taking "n_c" for an example, 'n' before '\_' stands for n input frames assigned by "num_frames". 'c', 'n', 'r' after '\_' means the relative position relationship between input frames and gt frames. Specifically, 'r' is right, 'c' is center, 'l' is left and 'n' is n frames. The following picture depicts it clearly. 
 
-![data_sampling_mode](./data_sampling_mode.png)
+![data_sampling_mode](./../../docs/data_sampling_mode.png)
 
 **augmentation**: The image augmentation for training. At now, it includes RandomCrop, RandomHorizontalFlip, RandomVerticalFlip,RandomRotation90, RandomReverse. Each of them has a Randomness controlled by a probability p (default is 0.5). 
 
