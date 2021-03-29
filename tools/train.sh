@@ -1,6 +1,6 @@
 CONFIG=$1
 GPUS=$2
-PORT=${PORT:-29500}
+PORT=${PORT:=10086}
 # PORT=10086
 # single gpu training
 if [ GPUS == 1 ]

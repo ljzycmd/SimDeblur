@@ -22,7 +22,7 @@ cfg.dataset.train.mode = "train"
 cfg.dataset.train.sampling = "n_c"
 cfg.dataset.train.overlapping = True
 cfg.dataset.train.interval = 1
-cfg.dataset.train.root_gt = "~/datasets/DVD/quantitative_datasets"
+cfg.dataset.train.root_gt = "./datasets/DVD/quantitative_datasets"
 cfg.dataset.train.data_type = "imgs"
 cfg.dataset.train.num_frames = 5
 
@@ -51,7 +51,7 @@ cfg.dataset.test.mode = "val"
 cfg.dataset.test.sampling = "n_c"
 cfg.dataset.test.overlapping = False
 cfg.dataset.test.interval = 1
-cfg.dataset.test.root_gt = "~/datasets/DVD/quantitative_datasets"
+cfg.dataset.test.root_gt = "./datasets/DVD/quantitative_datasets"
 cfg.dataset.test.data_type = "imgs"
 cfg.dataset.test.num_frames = 5
 

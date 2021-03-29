@@ -1,11 +1,9 @@
-"""
-************************************************
+""" ************************************************
 * fileName: build.py
-* desc: building the config wiht .yaml file
+* desc: 
 * author: minton_cao
-* last revised: None
-************************************************
-"""
+* last revised: 2020/3/29
+************************************************ """
 
 import os
 import yaml
@@ -44,24 +42,28 @@ def build_config(cfg_path):
     base_cfg = build_config(os.path.abspath(os.path.join(cfg_path, cfg.__base_cfg__)))
     if hasattr(base_cfg, "__base_cfg__"):
         base_cfg.pop("__base_cfg__")
-    base_cfg.update(cfg)
-    
+    base_cfg = merge_from_cfg(cfg, base_cfg)
     return base_cfg
 
 
-def merge_from_file(cfg, base_cfg):
+def merge_from_cfg(cfg, base_cfg):
     """
-    TODO merge the cfg to base cfg
+    merge the cfg to base cfg
     """
+    for k,v in cfg.items():
+        if base_cfg.get(k) and isinstance(v, dict):
+            base_cfg.update({k : merge_from_cfg(v, base_cfg.get(k))})
+        else:
+            base_cfg.update({k:v})
     return base_cfg
 
 
 def merge_args(cfg: edict, args):
     """
-    merge the args to the config
+    merge the arguments to the config
     """
     args_dict = vars(args)
     for k, v in args_dict.items():
         if k in cfg.keys() and v is not None:
-            cfg[k] = v
+            cfg.update({k:v})
     return cfg
