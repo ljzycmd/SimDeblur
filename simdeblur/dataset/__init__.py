@@ -1,6 +1,6 @@
 from .dvd import DVD
 from .gopro import GOPRO
-
+from .reds import REDS
 #
 from .build import build_dataset
 
