@@ -20,7 +20,7 @@ The toolbox contains most deep-learning based state-of-the-art deblurring algori
 
 
 ### New Features
-
+[2021/3/31] support DVD, GoPro and REDS video deblurring datasets. 
 [2021/3/21] first release.
 
 ### Surpported Methods and Benchmarks
