@@ -1,0 +1,102 @@
+name: "000_mscnn_lr1e4_GoPro_e1001_B8G4_s"
+
+dataset:
+    train:
+        name: GOPRO
+        mode: train
+        
+        sampling: n_c  # "n_n" and "n_c" , "n_l", "n_r"
+        overlapping: True
+        interval: 1
+        
+        root_gt: "./datasets/GOPRO/train"
+        data_type: "imgs"
+        num_frames: 1
+        
+        # augmentations
+        augmentation:
+            RandomCrop: 
+                size : [256, 256]
+            RandomHorizontalFlip: 
+                p: 0.5
+            RandomVerticalFlip: 
+                p: 0.5
+            RandomRotation90: 
+                p: 0.5
+            # RandomReverse: 
+            #     p: 0.5
+        # dataloader per GPU
+        loader:
+            batch_size: 8
+            num_workers: 8
+            
+
+    val:
+        name: GOPRO
+        mode: val
+        
+        sampling: n_c  # "n_n" and "n_c" , "n_l", "n_r"
+        overlapping: True
+        interval: 1
+        
+        root_gt: "./datasets/GOPRO/test"
+        data_type: "imgs"
+        num_frames: 1
+
+        loader:
+            batch_size: 1
+            num_workers: 1
+    
+    test:
+        name: GOPRO
+        mode: val
+        
+        sampling: n_c  # "n_n" and "n_c" , "n_l", "n_r"
+        overlapping: True
+        interval: 1
+        
+        root_gt: "./datasets/GOPRO/test"
+        data_type: "imgs"
+        num_frames: 1
+
+        loader:
+            batch_size: 1
+            num_workers: 1
+
+
+model:
+    name: "MSResNet"
+    in_channels: 3
+    num_feats: 64
+    out_channels: 3
+    num_resblocks: 19
+    kernel_size: 5
+    num_scales: 3
+
+loss: 
+    name: L1Loss
+
+schedule: 
+    epochs: 1001
+    val_epochs: 20
+    
+    optimizer:
+        name: "Adam"
+        lr: 0.0001
+        betas: [0.9, 0.999]
+        weight_decay: 0
+        
+    lr_scheduler:
+        name: "MultiStepLR"
+        milestones: [500, 750, 900]
+        gamma: 0.5
+
+logging: 
+    period: 20
+
+ckpt:
+    period: 20
+
+
+work_dir: "./workdir/image_deblurring/mscnn"
+resume_from: None
