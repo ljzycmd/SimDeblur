@@ -1,11 +1,9 @@
-"""
-************************************************
+""" ************************************************
 * fileName: trainer.py
-* desc: The trainer class of SimDeblur framework, which build the training loop automatically.
-* author: cmd
-* lsat revised: 2021.3.6
-************************************************
-"""
+* desc: The trainer class of SimDeblur framework, which builds the training loop automatically.
+* author: mingdeng_cao
+* lsat revised: 2021.4.5
+************************************************ """
 
 import os
 import sys
@@ -82,11 +80,36 @@ class Trainer:
         self.total_train_epochs = self.cfg.schedule.epochs
         self.total_train_iters = self.total_train_epochs * len(self.train_dataloader)
 
+        # resume or load the ckpt as init-weights
         if self.cfg.resume_from != "None":
             self.resume_or_load_ckpt(ckpt_path=self.cfg.resume_from)
 
         # log bufffer(dict to save) 
         self.log_buffer = LogBuffer()
+    
+    def preprocess(self, batch_data):
+        """
+        prepare for input
+        """
+        return batch_data["input_frames"].to(self.device)
+
+    def calculate_loss(self, batch_data, model_outputs):
+        """
+        calculate the loss
+        """
+        gt_frames = batch_data["gt_frames"].to(self.device).flatten(0, 1)
+        if model_outputs.dim() == 5:
+                model_outputs = model_outputs.flatten(0, 1) # (b*n, c, h, w)
+        return self.criterion(gt_frames, model_outputs)
+    
+    def update_params(self):
+        """
+        update params
+        pipline: zero_grad, backward and update grad
+        """
+        self.optimizer.zero_grad()
+        self.loss.backward()
+        self.optimizer.step()
     
     def train(self, **kwargs):
         self.model.train()
@@ -99,18 +122,13 @@ class Trainer:
             for self.batch_idx, self.batch_data in enumerate(self.train_dataloader):
                 self.before_iter()
 
-                input_frames = self.batch_data["input_frames"].to(self.device)
-                gt_frames = self.batch_data["gt_frames"].to(self.device).flatten(0, 1)
+                input_frames = self.preprocess(self.batch_data)
 
                 self.outputs = self.model(input_frames)
-                if self.outputs.dim() == 5:
-                    self.outputs = self.outputs.flatten(0, 1) # (b*n, c, h, w)
-                self.loss = self.criterion(gt_frames, self.outputs)
+                
+                self.loss = self.calculate_loss(self.batch_data, self.outputs)
 
-                # pipline: zero_grad, backward and update grad
-                self.optimizer.zero_grad()
-                self.loss.backward()
-                self.optimizer.step()
+                self.update_params()
 
                 self.iters += 1
                 self.after_iter()
@@ -157,8 +175,10 @@ class Trainer:
         self.model.eval()
         for self.batch_data in tqdm(self.val_datalocaer, desc="validation on gpu{}: ".format(self.cfg.args.local_rank)):
             self.before_iter()
-            input_frames = self.batch_data["input_frames"].to(self.device)
+            input_frames = self.preprocess(self.batch_data)
             self.outputs = self.model(input_frames)
+            if isinstance(self.outputs, list):
+                self.outputs = self.outputs[0]
             if self.outputs.dim() == 5:
                 self.outputs = self.outputs.flatten(0, 1)
 
