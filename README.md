@@ -6,7 +6,7 @@ SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and 
 <img src=./docs/reds_020.gif>
 </div>
 
-### Major features
+### Major Features
 
 - Modular Design
 
@@ -20,6 +20,8 @@ The toolbox contains most deep-learning based state-of-the-art deblurring algori
 
 
 ### New Features
+[2021/4/7] Provide a project demo implemented under SimDeblur: SRN
+
 [2021/4/5] Provide a project demo implemented under SimDeblur: MSCNN
 
 [2021/3/31] support DVD, GoPro and REDS video deblurring datasets. 
@@ -30,7 +32,7 @@ The toolbox contains most deep-learning based state-of-the-art deblurring algori
 
 * Single Image Deblurring 
     - [x] MSCNN [[Paper](https://arxiv.org/abs/1612.02177), [Project](https://github.com/SeungjunNah/DeepDeblur-PyTorch)]
-    - [ ] SRN [[Paper](https://arxiv.org/abs/1802.01770), [Project](https://github.com/jiangsutx/SRN-Deblur)]
+    - [x] SRN [[Paper](https://arxiv.org/abs/1802.01770), [Project](https://github.com/jiangsutx/SRN-Deblur)]
     - [ ] DeblurGAN [[Paper](https://arxiv.org/abs/1711.07064), [Project](https://github.com/KupynOrest/DeblurGAN)]
     - [ ] DMPHN [[Paper](https://arxiv.org/abs/1904.03468), [Project](https://github.com/HongguangZhang/DMPHN-cvpr19-master)]
     - [ ] DeblurGAN_V2 [[Paper](https://arxiv.org/abs/1908.03826), [Project](https://github.com/VITA-Group/DeblurGANv2)]
