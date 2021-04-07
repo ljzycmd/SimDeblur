@@ -9,7 +9,7 @@ dataset:
         overlapping: True
         interval: 1
         
-        root_gt: "/home/cmd/datasets/DVD/quantitative_datasets"
+        root_gt: "./datasets/DVD/quantitative_datasets"
         data_type: "imgs"
         num_frames: 12
         
@@ -40,7 +40,7 @@ dataset:
         overlapping: False 
         interval: 1
         
-        root_gt: "/home/cmd/datasets/DVD/test"
+        root_gt: "./datasets/DVD/test"
         data_type: "imgs"
         num_frames: 12
 
@@ -56,7 +56,7 @@ dataset:
         overlapping: False 
         interval: 1
         
-        root_gt: "/home/cmd/datasets/DVD/test"
+        root_gt: "./datasets/DVD/test"
         data_type: "imgs"
         num_frames: 12
 
