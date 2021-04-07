@@ -142,16 +142,16 @@ class STFAN(nn.Module):
             x shape: (b, n, c, h, w) = (1, 20, 3, 720, 1280)
         """
         assert x.dim() == 5, f"Input x should be in 5 dims, but got {x.dim()} instead!"
-
+        b, n, c, h, w = x.shape
         outputs = []
         out_img_last = x[:, 0]
-        blur_img_last = x[: 0]
+        blur_img_last = x[:, 0]
         hidden_feats = None
 
         for frame_idx in range(n):
             # outputs: (b, n, c, h, w) = (1, 20, 3, 720, 1280)
             out_img, hidden_feats = self.cell(x[:, frame_idx], blur_img_last, out_img_last, hidden_feats)
-            assert out_img == None
+            assert out_img is not None, "Out img is None!"
 
             out_img_last = out_img
             blur_img_last = x[:, frame_idx]

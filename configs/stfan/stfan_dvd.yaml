@@ -1,6 +1,68 @@
 name: "000_STFAN_seq20_lr2e4_DVD_e651_B1G2_s"
 
-__base_cfg__: ./../../base_dvd.yaml
+dataset:
+    train:
+        name: DVD
+        mode: train
+        
+        sampling: n_n  # "n_n" and "n_c" , "n_l", "n_r"
+        overlapping: True
+        interval: 1
+        
+        root_gt: ./datasets/DVD/quantitative_datasets
+        data_type: "imgs"
+        num_frames: 10
+        
+        # augmentations
+        augmentation:
+            RandomCrop: 
+                size : [256, 256]
+            RandomHorizontalFlip: 
+                p: 0.5
+            RandomVerticalFlip: 
+                p: 0.5
+            RandomRotation90: 
+                p: 0.5
+            # RandomReverse: 
+            #     p: 0.5
+        # dataloader per GPU
+        loader:
+            batch_size: 2
+            num_workers: 8
+            
+
+    val:
+        name: "DVD"
+        mode: "val"
+        
+        sampling: n_n  # "n_n" and "n_c" , "n_l", "n_r"
+        overlapping: False
+        interval: 1
+        
+        root_gt: "./datasets/DVD/test"
+        data_type: "imgs"
+        num_frames: 5
+
+        loader:
+            batch_size: 1
+            num_workers: 1
+    
+    test:
+        name: "DVD"
+        mode: "val"
+        
+        sampling: "n_n"  # "n_n" and "n_c" , "n_l", "n_r"
+        overlapping: Fasle
+        interval: 1
+        
+        root_gt: "./datasets/DVD/quantitative_datasets"
+        data_type: "imgs"
+        num_frames: 5
+
+        loader:
+            batch_size: 1
+            num_workers: 2
+
 
 model:
     name: "STFAN"
