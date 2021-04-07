@@ -2,7 +2,7 @@
 * fileName: trainer.py
 * desc: The trainer class of SimDeblur framework, which builds the training loop automatically.
 * author: mingdeng_cao
-* lsat revised: 2021.4.5
+* lsat revised: 2021.4.7
 ************************************************ """
 
 import os
@@ -93,6 +93,13 @@ class Trainer:
         """
         return batch_data["input_frames"].to(self.device)
 
+    def postprocess(self):
+        """
+        post process for model outputs
+        """
+        if self.outputs.dim() == 5:
+            self.outputs = self.outputs.flatten(0, 1)
+
     def calculate_loss(self, batch_data, model_outputs):
         """
         calculate the loss
@@ -125,6 +132,7 @@ class Trainer:
                 input_frames = self.preprocess(self.batch_data)
 
                 self.outputs = self.model(input_frames)
+                self.postprocess()
                 
                 self.loss = self.calculate_loss(self.batch_data, self.outputs)
 
@@ -179,8 +187,7 @@ class Trainer:
             self.outputs = self.model(input_frames)
             if isinstance(self.outputs, list):
                 self.outputs = self.outputs[0]
-            if self.outputs.dim() == 5:
-                self.outputs = self.outputs.flatten(0, 1)
+            self.postprocess()
 
             self.after_iter()
 
