@@ -97,7 +97,8 @@ class Trainer:
         """
         post process for model outputs
         """
-        if self.outputs.dim() == 5:
+        # When the outputs is a img tensor
+        if isinstance(self.outputs, torch.Tensor) and self.outputs.dim() == 5:
             self.outputs = self.outputs.flatten(0, 1)
 
     def calculate_loss(self, batch_data, model_outputs):
