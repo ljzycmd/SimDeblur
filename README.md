@@ -20,9 +20,7 @@ The toolbox contains most deep-learning based state-of-the-art deblurring algori
 
 
 ### New Features
-[2021/4/7] Provide a project demo implemented under SimDeblur: SRN
-
-[2021/4/5] Provide a project demo implemented under SimDeblur: MSCNN
+[2021/4/7] Provide project demo implemented under SimDeblur: SRN and MSCNN.
 
 [2021/3/31] support DVD, GoPro and REDS video deblurring datasets. 
 
