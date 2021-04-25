@@ -2,7 +2,9 @@
 * fileName: trainer.py
 * desc: The trainer class of SimDeblur framework, which builds the training loop automatically.
 * author: mingdeng_cao
-* lsat revised: 2021.4.7
+* lsat revised: 2021.4.25
+* logs:
+4.25, Update the optimizer and lr_scheduler builder, considering the "None" type.
 ************************************************ """
 
 import os
@@ -134,7 +136,7 @@ class Trainer:
 
                 self.outputs = self.model(input_frames)
                 self.postprocess()
-                
+
                 self.loss = self.calculate_loss(self.batch_data, self.outputs)
 
                 self.update_params()
@@ -294,14 +296,18 @@ class Trainer:
     def build_optimizer(cls, cfg, model):
         """
         """
-        return build_optimizer(cfg, model)
+        if not cfg.schedule.get("optimizer"):
+            return None
+        return build_optimizer(cfg.schedule.optimizer, model)
         
 
     @classmethod
     def build_lr_scheduler(cls, cfg, optimizer):
         """
         """
-        return build_lr_scheduler(cfg, optimizer)
+        if optimizer is None or (not cfg.schedule.get("lr_scheduler")):
+            return None 
+        return build_lr_scheduler(cfg.schedule.lr_scheduler, optimizer)
     
     @classmethod
     def build_dataloder(cls, cfg, mode="train"):
