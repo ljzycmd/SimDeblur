@@ -98,7 +98,8 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 4
 
 ## 2 Build each module
 The SimDeblur also provides you to build each module.
-build the a dataset:
+
+Build a dataset:
 ```python
 from easydict import EasyDict as edict
 from simdeblur.dataset import build_dataset
@@ -126,7 +127,7 @@ dataset = build_dataset(edict({
 print(dataset[0])
 ```
 
-build the model:
+Build a model:
 ```python
 from simdeblur.model import build_backbone
 
@@ -140,7 +141,7 @@ model = build_backbone({
 x = torch.randn(1, 5, 3, 256, 256)
 out = model(x)
 ```
-build the loss:
+Build the loss:
 ```python 
 from simdeblur.model import build_loss
 
