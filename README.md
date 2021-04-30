@@ -1,6 +1,6 @@
 # <p align=center>`SimDeblur`</p>
 
-SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and video deblurring based on PyTorch, which contains most deep-learning based state-of-the-art deblurring algorithms. It is easy to implement your own image or video deblurring and restoration algorithms. 
+SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and video deblurring based on PyTorch, which contains most deep-learning based state-of-the-art deblurring algorithms. It is easy to implement your own image or video deblurring and restoration algorithms. To the best of our knowledge, this is the first general framework for image/video delburring. 
 
 <div align=center> 
 <img src=./docs/reds_020.gif>
