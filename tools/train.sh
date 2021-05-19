@@ -3,7 +3,7 @@ GPUS=$2
 PORT=${PORT:=10086}
 # PORT=10086
 # single gpu training
-if [ GPUS == 1 ]
+if [ $GPUS == 1 ]
 then
 echo start single GPU training
 python train.py $CONFIG --gpus=$GPUS
