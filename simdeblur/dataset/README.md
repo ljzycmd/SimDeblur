@@ -29,3 +29,19 @@ loader: The configs for construct the dataloader.
 **augmentation**: The image augmentation for training. At now, it includes RandomCrop, RandomHorizontalFlip, RandomVerticalFlip,RandomRotation90, RandomReverse. Each of them has a Randomness controlled by a probability p (default is 0.5). 
 
 **num_frames**: The number of input frames. Many video deblurring frameworks take 5 blurry frames as input, and single image deblurring alorithms take 1 blurry image for input. 
+
+**Construct your own deep video deblurring dataset**
+```python
+DVD_Train or DVD_Val
+├── IMG_0032
+│   ├── GT
+│   │   ├── 00000.jpg
+│   │   ├── 00001.jpg
+│   │   ├── 00002.jpg
+|   |        ...
+│   ├── input
+│   │   ├── 00000.jpg
+│   │   ├── 00001.jpg
+│   │   ├── 00002.jpg
+|   |        ...
+```

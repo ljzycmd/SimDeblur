@@ -37,7 +37,7 @@ The toolbox contains most deep-learning based state-of-the-art deblurring algori
     - [ ] SAPHN [[Paper](https://arxiv.org/abs/2004.05343)]
 
 * Video Deblurring
-    - [x] DBN [[Paper](https://arxiv.org/abs/1611.08387), [Project](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/)]
+    - [x] DBN [[Paper](https://arxiv.org/abs/1611.08387), [Project](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/), [GitHub](https://github.com/shuochsu/DeepVideoDeblurring)]
     - [x] STRCNN [[paper](https://arxiv.org/abs/1704.03285)]
     - [x] DBLRNet [[Paper](https://arxiv.org/abs/1804.00533)]
     - [x] EDVR [[Paper](https://arxiv.org/abs/1905.02716), [Project](https://github.com/xinntao/EDVR)]
