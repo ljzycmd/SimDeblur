@@ -56,7 +56,7 @@ The toolbox contains most deep-learning based state-of-the-art deblurring algori
 * Pytorch 1.5.1 (with GPU)
 * CUDA 10.2+ 
 1. Clone the repositry or download the zip file
-   ```git
+   `
     git clone https://github.com/ljzycmd/SimDeblur.git
    ```
 2. Install SimDeblur
@@ -70,6 +70,7 @@ The toolbox contains most deep-learning based state-of-the-art deblurring algori
    ```
 
 # Usage
+You can open the [Colab Notebook](https://colab.research.google.com/drive/13dNBB38U_scDI46EHQ-V1GEgDMVtj5mx?usp=sharing) to learn about basic usage and see the deblurring performance.
 ## 1 Start with trainer
 You can construct a simple training process use the default trainer like following:
 ```python
