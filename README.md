@@ -96,7 +96,7 @@ multi GPU training:
 CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 4
 ```
 
-## 2 Build each module
+## 2 Build a module
 The SimDeblur also provides you to build each module.
 
 Build a dataset:
