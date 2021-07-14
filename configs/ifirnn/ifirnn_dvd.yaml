@@ -73,7 +73,9 @@ model:
     intra_iters: 3
 
 loss: 
-    name: CharbonnierLoss
+    criterion:
+        name: CharbonnierLoss
+    weights: [1.0]
 
 schedule: 
     epochs: 651

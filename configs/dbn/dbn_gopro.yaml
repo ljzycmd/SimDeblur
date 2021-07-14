@@ -1,6 +1,6 @@
 name: "000_dbn_lr2e4_GoPro_e651_B8G1_s"
 
-__base_cfg__: ./../../base_gopro.yaml
+__base_cfg__: ./../base_gopro.yaml
 
 dataset:
     train:
@@ -16,7 +16,9 @@ model:
     inner_channels: 64
 
 loss: 
-    name: CharbonnierLoss
+    criterion:
+        name: CharbonnierLoss
+    weights: [1.0]
 
 schedule: 
     epochs: 651

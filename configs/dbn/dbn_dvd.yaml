@@ -1,6 +1,6 @@
 name: "000_dbn_lr2e4_DVD_e651_B4G2_s"
 
-__base_cfg__: ./../../base_dvd.yaml
+__base_cfg__: ./../base_dvd.yaml
 
 model:
     name: "DBN"
@@ -9,7 +9,9 @@ model:
     inner_channels: 64
 
 loss: 
-    name: CharbonnierLoss
+    criterion:
+        name: CharbonnierLoss
+    weights: [1.0]
 
 schedule: 
     epochs: 651

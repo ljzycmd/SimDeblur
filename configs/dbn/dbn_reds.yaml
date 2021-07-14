@@ -1,6 +1,6 @@
 name: "000_dbn_lr2e4_REDS_e301_B8G1_s"
 
-__base_cfg__: ./../../base_reds.yaml
+__base_cfg__: ./../base_reds.yaml
 
 dataset:
     train:
@@ -16,7 +16,9 @@ model:
     inner_channels: 64
 
 loss: 
-    name: CharbonnierLoss
+    criterion:
+        name: CharbonnierLoss
+    weights: [1.0]
 
 schedule: 
     epochs: 301

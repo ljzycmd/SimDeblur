@@ -1,6 +1,6 @@
 name: "001_edvr_lr2e4_DVD_e651_B4G2_s"
 
-__base_cfg__: ./../../base_dvd.yaml
+__base_cfg__: ./../base_dvd.yaml
 
 model:
     name: "EDVR"
@@ -17,7 +17,9 @@ model:
     with_tsa: True
 
 loss: 
-    name: CharbonnierLoss
+    criterion:
+        name: CharbonnierLoss
+    weights: [1.0]
 
 schedule: 
     epochs: 651

@@ -1,6 +1,13 @@
 name: "000_dblrnet_lr2e4_DVD_e651_B4G2_s"
 
-__base_cfg__: ./../../base_dvd.yaml
+__base_cfg__: ./../base_dvd.yaml
+
+dataset:
+    train:
+        # dataloader per GPU
+        loader:
+            batch_size: 4
+            num_workers: 4
 
 model:
     name: "DBLRNet"
@@ -9,7 +16,9 @@ model:
     inner_channels: 64
 
 loss: 
-    name: CharbonnierLoss
+    criterion:
+        name: CharbonnierLoss
+    weights: [1.0]
 
 schedule: 
     epochs: 651

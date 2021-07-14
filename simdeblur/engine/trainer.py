@@ -2,19 +2,22 @@
 * fileName: trainer.py
 * desc: The trainer class of SimDeblur framework, which builds the training loop automatically.
 * author: mingdeng_cao
-* lsat revised: 2021.4.25
+* lsat revised: 2021.6.7
 * logs:
-4.25, Update the optimizer and lr_scheduler builder, considering the "None" type.
+    7.14, Update the testing process.
+    6.07, Update the logging.
+    4.25, Update the optimizer and lr_scheduler builder, considering the "None" type.
 ************************************************ """
 
 import os
 import sys
 import copy
 import logging
+import time
 
 import torch
 import torch.nn as nn
-
+from torchvision.utils import save_image
 from tqdm import tqdm
 from datetime import datetime
 
@@ -29,7 +32,8 @@ from simdeblur.utils import dist_utils
 from simdeblur.engine import hooks
 
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - SimDeblur: %(message)s',level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(levelname)s - SimDeblur: %(message)s', level=logging.INFO)
 logging.info("******* A simple deblurring framework ********")
 
 
@@ -49,8 +53,8 @@ class Trainer:
         if not os.path.exists(self.current_work_dir):
             os.makedirs(self.current_work_dir, exist_ok=True)
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # self.device = torch.device("cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu")
 
         # default logger
         logger = logging.getLogger("simdeblur")
@@ -60,35 +64,37 @@ class Trainer:
                 os.path.join(
                     self.current_work_dir, self.cfg.name.split("_")[0] + ".json"))
         )
-        
+
         # construct the modules
         self.model = self.build_model(cfg).to(self.device)
-        self.criterion = build_loss(cfg.loss).to(self.device)
-        self.train_dataloader, self.train_sampler = self.build_dataloder(cfg, mode="train")
+        self.criterion = {k: v.to(self.device) for k, v in self.build_losses(cfg.loss.criterion).items()}
+        self.train_dataloader, self.train_sampler = self.build_dataloder(
+            cfg, mode="train")
         self.val_datalocaer, _ = self.build_dataloder(cfg, mode="val")
         self.optimizer = self.build_optimizer(cfg, self.model)
         self.lr_scheduler = self.build_lr_scheduler(cfg, self.optimizer)
-        
+
         # trainer hooks
         self._hooks = self.build_hooks()
 
         # some induces when training
         self.epochs = 0
         self.iters = 0
-        self.batch_idx = 0 
+        self.batch_idx = 0
 
         self.start_epoch = 0
         self.start_iter = 0
         self.total_train_epochs = self.cfg.schedule.epochs
-        self.total_train_iters = self.total_train_epochs * len(self.train_dataloader)
+        self.total_train_iters = self.total_train_epochs * \
+            len(self.train_dataloader)
 
         # resume or load the ckpt as init-weights
         if self.cfg.resume_from != "None":
             self.resume_or_load_ckpt(ckpt_path=self.cfg.resume_from)
 
-        # log bufffer(dict to save) 
+        # log bufffer(dict to save)
         self.log_buffer = LogBuffer()
-    
+
     def preprocess(self, batch_data):
         """
         prepare for input
@@ -109,9 +115,12 @@ class Trainer:
         """
         gt_frames = batch_data["gt_frames"].to(self.device).flatten(0, 1)
         if model_outputs.dim() == 5:
-                model_outputs = model_outputs.flatten(0, 1) # (b*n, c, h, w)
-        return self.criterion(gt_frames, model_outputs)
-    
+            model_outputs = model_outputs.flatten(0, 1)  # (b*n, c, h, w)
+        loss = 0.
+        for cri, weight in zip(self.criterion.values(), self.cfg.loss.weights):
+            loss += cri(gt_frames, model_outputs) * weight
+        return loss
+
     def update_params(self):
         """
         update params
@@ -120,7 +129,7 @@ class Trainer:
         self.optimizer.zero_grad()
         self.loss.backward()
         self.optimizer.step()
-    
+
     def train(self, **kwargs):
         self.model.train()
         self.before_train()
@@ -143,12 +152,13 @@ class Trainer:
 
                 self.iters += 1
                 self.after_iter()
-            
-            if self.epochs % self.cfg.schedule.val_epochs == 0:
+
+            if (self.epochs + 1) % self.cfg.schedule.val_epochs == 0 or self.epochs == 0 \
+                    or (self.epochs + 1) == self.cfg.schedule.epochs:
                 self.val()
 
             self.after_epoch()
-    
+
     def before_train(self):
         for h in self._hooks:
             h.before_train(self)
@@ -156,18 +166,18 @@ class Trainer:
     def after_train(self):
         for h in self._hooks:
             h.after_train(self)
-    
+
     def before_epoch(self):
         for h in self._hooks:
             h.before_epoch(self)
         # shuffle the data when dist training ...
         if self.train_sampler:
             self.train_sampler.set_epoch(self.epochs)
-    
+
     def after_epoch(self):
         for h in self._hooks:
             h.after_epoch(self)
-        
+
         self.model.train()
 
     def before_iter(self):
@@ -197,7 +207,7 @@ class Trainer:
     def build_writers(self):
         return [
             SimpleMetricPrinter(),
-            ]
+        ]
 
     def build_hooks(self):
         ret = [
@@ -205,56 +215,63 @@ class Trainer:
             hooks.CKPTSaver(**self.cfg.ckpt),
             # logging on the main process
             hooks.PeriodicWriter([
-                SimpleMetricPrinter(self.current_work_dir, self.cfg.name.split("_")[0]), 
-                TensorboardWriter(os.path.join(self.current_work_dir, self.cfg.name.split("_")[0], str(datetime.now()))),
-                ],
+                SimpleMetricPrinter(self.current_work_dir,
+                                    self.cfg.name.split("_")[0]),
+                TensorboardWriter(os.path.join(
+                    self.current_work_dir, self.cfg.name.split("_")[0], str(datetime.now()))),
+            ],
                 **self.cfg.logging),
         ]
-        
-        return ret
 
+        return ret
 
     def resume_or_load_ckpt(self, ckpt=None, ckpt_path=None):
         if ckpt is not None:
             try:
                 self.model.load_state_dict(ckpt)
-            except:
+            except Exception as e:
+                logging.warning(e)
                 logging.warning("Connot load the ckpt from the input ckpt !!!")
         else:
             try:
-                kwargs={'map_location':lambda storage, loc: storage.cuda(self.cfg.args.local_rank)}
+                kwargs = {'map_location': lambda storage,
+                          loc: storage.cuda(self.cfg.args.local_rank)}
                 ckpt = torch.load(ckpt_path, **kwargs)
-                
+
                 meta_info = ckpt["mata"]
                 model_ckpt = ckpt["model"]
                 optimizer_ckpt = ckpt["optimizer"]
                 lr_scheduler_ckpt = ckpt["lr_scheduler"]
-                
-                if self.cfg.args.gpus <= 1:
-                    model_ckpt = {k[7:]:v for k, v in model_ckpt.items()} # for cpu or single gpu model, it doesn't have the .module property
 
-                # initial mode
+                if self.cfg.args.gpus <= 1:
+                    # for cpu or single gpu model, it doesn't have the .module property
+                    model_ckpt = {k[7:]: v for k, v in model_ckpt.items()}
+
+                # initial mode: load the ckpt as the initialized weights
                 if not self.cfg.get("init_mode"):
-                    # strict=True if resume from exist .pth, 
+                    # strict=True if resume from exist .pth,
                     self.model.load_state_dict(model_ckpt, strict=True)
                     # load optimizer and lr_scheduler
                     self.optimizer.load_state_dict(optimizer_ckpt)
                     self.lr_scheduler.load_state_dict(lr_scheduler_ckpt)
                     # generate the idx
                     self.start_epoch = self.epochs = meta_info["epochs"]
-                    self.start_iter = self.iters = self.start_epoch * len(self.train_dataloader)
+                    self.start_iter = self.iters = self.start_epoch * \
+                        len(self.train_dataloader)
                 else:
-                    # strict=Fasle if fine-tune from exist .pth, 
+                    # strict=Fasle if fine-tune from exist .pth,
                     self.model.load_state_dict(model_ckpt, strict=False)
-                    
-                logging.info("Inittial mode: %s, checkpoint loaded from %s."%(self.cfg.get("init_mode"), self.cfg.resume_from))
-            except:
-                logging.warning("Checkpoint loaded failed, cannot find ckpt file from %s."%(self.cfg.resume_from))
 
-    
+                logging.info("Inittial mode: %s, checkpoint loaded from %s." % (
+                    self.cfg.get("init_mode"), self.cfg.resume_from))
+            except Exception as e:
+                logging.warning(e)
+                logging.warning("Checkpoint loaded failed, cannot find ckpt file from %s." % (
+                    self.cfg.resume_from))
+
     def save_ckpt(self, out_dir=None, ckpt_name="epoch_{}.pth"):
         meta_info = {"epochs": self.epochs + 1, "iters": self.iters + 1}
-        
+
         ckpt_name = ckpt_name.format(self.epochs + 1)
         if out_dir is None:
             out_dir = os.path.join(self.cfg.work_dir, self.cfg.name)
@@ -275,23 +292,39 @@ class Trainer:
             f.flush()
 
     def get_current_lr(self):
-        assert self.lr_scheduler.get_last_lr()[0] == self.optimizer.param_groups[0]["lr"]
+        assert self.lr_scheduler.get_last_lr(
+        )[0] == self.optimizer.param_groups[0]["lr"]
         return self.optimizer.param_groups[0]["lr"]
-    
+
     @classmethod
     def build_model(cls, cfg):
         """
+        build a model
         """
         # TODO change the build backbone to build model
         model = build_backbone(cfg.model)
         if cfg.args.gpus > 1:
             rank = cfg.args.local_rank
-            model = nn.parallel.DistributedDataParallel(model.cuda(), device_ids=[cfg.args.local_rank], output_device=cfg.args.local_rank)
+            model = nn.parallel.DistributedDataParallel(model.cuda(), device_ids=[rank], output_device=rank)
         if cfg.args.local_rank == 0:
             logger = logging.getLogger(__name__)
             logger.info("Model:\n{}".format(model))
         return model
-    
+
+    @classmethod
+    def build_losses(cls, cfg):
+        """
+        build all losses
+        """
+        criterions = {}
+        if isinstance(cfg, list):
+            for loss_cfg in cfg:
+                criterions[loss_cfg.name] = build_loss(loss_cfg)
+        else:
+            criterions[cfg.name] = build_loss(cfg)
+
+        return criterions
+
     @classmethod
     def build_optimizer(cls, cfg, model):
         """
@@ -299,16 +332,15 @@ class Trainer:
         if not cfg.schedule.get("optimizer"):
             return None
         return build_optimizer(cfg.schedule.optimizer, model)
-        
 
     @classmethod
     def build_lr_scheduler(cls, cfg, optimizer):
         """
         """
         if optimizer is None or (not cfg.schedule.get("lr_scheduler")):
-            return None 
+            return None
         return build_lr_scheduler(cfg.schedule.lr_scheduler, optimizer)
-    
+
     @classmethod
     def build_dataloder(cls, cfg, mode="train"):
         if mode == "train":
@@ -321,19 +353,24 @@ class Trainer:
             raise NotImplementedError
         dataset = build_dataset(dataset_cfg)
         if cfg.args.gpus > 1:
-            # TODO reimplement the dist dataloader partition without distsampler, 
+            # TODO reimplement the dist dataloader partition without distsampler,
             # that is because we must shuffe the dataloader by ourself before each epoch
-            sampler = torch.utils.data.distributed.DistributedSampler(dataset, num_replicas=cfg.args.gpus, rank=cfg.args.local_rank, shuffle=True)
-            dataloder = torch.utils.data.DataLoader(dataset, **dataset_cfg.loader, sampler=sampler)
+            sampler = torch.utils.data.distributed.DistributedSampler(
+                dataset, num_replicas=cfg.args.gpus, rank=cfg.args.local_rank, shuffle=True)
+            dataloder = torch.utils.data.DataLoader(
+                dataset, **dataset_cfg.loader, sampler=sampler)
             return dataloder, sampler
-        
+
         else:
-            dataloder = torch.utils.data.DataLoader(dataset, **dataset_cfg.loader)
+            dataloder = torch.utils.data.DataLoader(
+                dataset, **dataset_cfg.loader)
             return dataloder, None
-    
+
     @classmethod
     def test(cls, cfg):
         """
+        Only single GPU testing is surppored at now.
+        TODO: Separate the testing process.
         Args:
             cfg(edict): the config file for testing, which contains "model" and "test dataloader" configs etc.
         """
@@ -342,49 +379,78 @@ class Trainer:
         if cfg.args.gpus > 1:
             dist_utils.init_distributed(cfg)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-       
+
         model = Trainer.build_model(cfg).to(device)
-        test_datalocaer, _ = Trainer.build_dataloder(cfg, "val")
-        
+        test_dataloader, _ = Trainer.build_dataloder(cfg, "val")
+
         try:
-            kwargs={'map_location':lambda storage, loc: storage.cuda(cfg.args.local_rank)}
-            ckpt = torch.load(cfg.args.ckpt_file, **kwargs)
+            kwargs = {'map_location': lambda storage,
+                      loc: storage.cuda(cfg.args.local_rank)}
+            ckpt = torch.load(os.path.abspath(cfg.args.ckpt_file), **kwargs)
 
             model_ckpt = ckpt["model"]
-            print(model_ckpt.keys())
-            if self.cfg.args.gpus <= 1:
-                model_ckpt = {k[7:]:v for k, v in model_ckpt.items()} # for cpu or single gpu model, it doesn't have the .module property
-            # strict=false if fine-tune from exist .pth, 
+            # print(model_ckpt.keys())
+            if cfg.args.gpus <= 1:
+                # for cpu or single gpu model, it doesn't have the .module property
+                model_ckpt = {k[7:]: v for k, v in model_ckpt.items()}
+            # strict=false if fine-tune from exist .pth,
             model.load_state_dict(model_ckpt, strict=True)
-            
-            logging.info("Using checkpoint loaded from %s for testing."%(cfg.args.ckpt_file))
-        except:
-            logging.warning("Checkpoint loaded failed, cannot find ckpt file from %s."%(cfg.args.ckpt_file))
-        # writers
-        # SimpleMetricPrinter(cfg.current_work_dir, cfg.name.split("_")[0])
-        # TensorboardWriter(os.path.join(cfg.current_work_dir, self.cfg.name.split("_")[0], str(datetime.now())))
+
+            logging.info("Using checkpoint loaded from %s for testing." %
+                         (cfg.args.ckpt_file))
+        except Exception as e:
+            logging.warning(e)
+            logging.warning("Checkpoint loaded failed, cannot find ckpt file from %s." % (
+                cfg.args.ckpt_file))
 
         model.eval()
         psnr_dict = {}
         ssim_dict = {}
-        for batch_data in tqdm(test_datalocaer, desc="validation on gpu{}: ".format(cfg.args.local_rank)):
-            input_frames = batch_data["input_frames"].to(device)
-            gt_frames = batch_data["gt_frames"].to(device)
-            outputs = model(input_frames)
-            
-            print("video name: ", batch_data["video_name"])
-            print("frame name: ", batch_data["gt_names"])
-            break
-            # calculate metrics
-            b, n, c, h, w = gt_frames.shape
-            # single image output
-            if outputs.dim() == 4:
-                outputs = outputs.detach().unsqueeze(1) # (b, 1, c, h, w)
-            for b_idx in range(b):
-                for n_idx in range(n):
-                    frame_name = "{}_{}".format(batch_data["video_name"][b_idx], batch_data["gt_names"][n_idx][b_idx])
-                    psnr_dict[frame_name] = calculate_psnr(gt_frames[b_idx, n_idx:n_idx+1], outputs[b_idx, n_idx:n_idx+1]).item()
-                    ssim_dict[frame_name] = calculate_ssim(gt_frames[b_idx, n_idx:n_idx+1], outputs[b_idx, n_idx:n_idx+1]).item()
-                    print(frame_name, "psnr: ", psnr_dict[frame_name], "ssim: ", ssim_dict[frame_name])
-        print("mean psnr: ", psnr_dict.values())
-        print("mean ssim: ", ssim_dict.values())
+        total_time = 0.
+        with torch.no_grad():
+            for batch_data in tqdm(test_dataloader, desc="validation on gpu{}: ".format(cfg.args.local_rank)):
+                input_frames = batch_data["input_frames"].to(device)
+                gt_frames = batch_data["gt_frames"].to(device)
+
+                # record the testing time.
+                torch.cuda.synchronize()
+                time_start = time.time()
+                outputs = model(input_frames)
+                torch.cuda.synchronize()
+                total_time += time.time() - time_start
+
+                # calculate metrics
+                b, n, c, h, w = gt_frames.shape
+                # single image output
+                if outputs.dim() == 4:
+                    outputs = outputs.detach().unsqueeze(1)  # (b, 1, c, h, w)
+                for b_idx in range(b):
+                    for n_idx in range(n):
+                        frame_name = "{}_{}".format(
+                            batch_data["video_name"][b_idx], batch_data["gt_names"][n_idx][b_idx])
+                        psnr_dict[frame_name] = calculate_psnr(
+                            gt_frames[b_idx, n_idx:n_idx+1], outputs[b_idx, n_idx:n_idx+1]).item()
+                        ssim_dict[frame_name] = calculate_ssim(
+                            gt_frames[b_idx, n_idx:n_idx+1], outputs[b_idx, n_idx:n_idx+1]).item()
+
+                        # save the output images
+                        save_path_base = os.path.abspath(
+                            os.path.join(cfg.work_dir, cfg.name, "tested", batch_data["video_name"][b_idx]))
+                        if not os.path.exists(save_path_base):
+                            os.makedirs(save_path_base, exist_ok=True)
+                        save_path = os.path.join(
+                            save_path_base, batch_data["gt_names"][n_idx][b_idx])
+                        save_image(outputs[b_idx, n_idx:n_idx+1], save_path)
+                        # save testing logs
+                        with open(os.path.abspath(os.path.join(cfg.work_dir, cfg.name, "tested", "test_log.txt")), "a") as f:
+                            f.write("{}, {}, {}, {} \n".format(
+                                batch_data["video_name"][b_idx],
+                                batch_data["gt_names"][n_idx][b_idx],
+                                psnr_dict[frame_name],
+                                ssim_dict[frame_name]))
+        print("mean PSNR: {:.2f}  mean SSIM: {:.4f}  total time: {:.2f}s  average time: {:.4f}s FPS: {:.2f}".format(
+            sum(psnr_dict.values()) / len(psnr_dict),
+            sum(ssim_dict.values()) / len(ssim_dict),
+            total_time,
+            total_time / len(test_dataloader),
+            len(test_dataloader.dataset) / total_time))

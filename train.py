@@ -1,13 +1,12 @@
-"""
-************************************************
+""" ************************************************
 * fileName: train.py
-* desc: model training process
-* author: minton_cao
-* last revised: None
-************************************************
-"""
+* desc: The training file for SimDeblur,
+        pay much attention to your constructed configs.
+* author: mingdeng_cao
+* date: 2021/07/14 17:26
+* last revised: Reformat the file
+************************************************ """
 
-import torch
 
 from simdeblur.config import build_config, merge_args
 from simdeblur.engine.parse_arguments import parse_arguments
@@ -23,7 +22,7 @@ def main():
 
     trainer = Trainer(cfg)
     trainer.train()
-    
+
 
 if __name__ == "__main__":
     main()
