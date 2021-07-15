@@ -412,12 +412,7 @@ class Trainer:
                 input_frames = batch_data["input_frames"].to(device)
                 gt_frames = batch_data["gt_frames"].to(device)
 
-                # record the testing time.
-                torch.cuda.synchronize()
-                time_start = time.time()
                 outputs = model(input_frames)
-                torch.cuda.synchronize()
-                total_time += time.time() - time_start
 
                 # calculate metrics
                 b, n, c, h, w = gt_frames.shape
@@ -448,9 +443,6 @@ class Trainer:
                                 batch_data["gt_names"][n_idx][b_idx],
                                 psnr_dict[frame_name],
                                 ssim_dict[frame_name]))
-        print("mean PSNR: {:.2f}  mean SSIM: {:.4f}  total time: {:.2f}s  average time: {:.4f}s FPS: {:.2f}".format(
+        print("mean PSNR: {:.2f}  mean SSIM: {:.4f} ".format(
             sum(psnr_dict.values()) / len(psnr_dict),
-            sum(ssim_dict.values()) / len(ssim_dict),
-            total_time,
-            total_time / len(test_dataloader),
-            len(test_dataloader.dataset) / total_time))
+            sum(ssim_dict.values()) / len(ssim_dict)))
