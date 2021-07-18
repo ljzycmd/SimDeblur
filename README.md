@@ -171,10 +171,10 @@ If SimDeblur helps your research or work, please consider citing SimDeblur.
 
 ```bibtex
 @misc{cao2021simdeblur,
-  author =       {Mingdeng Cao},
-  title =        {SimDeblur},
+  author       = {Mingdeng Cao},
+  title        = {SimDeblur: A Simple Framwork for Image and Video Deblurring},
   howpublished = {\url{https://github.com/ljzycmd/SimDeblur}},
-  year =         {2021}
+  year         = {2021}
 }
 ```
 If you have any question, please [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao AT gmail.com`.
