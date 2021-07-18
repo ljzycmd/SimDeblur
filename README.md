@@ -177,4 +177,4 @@ If SimDeblur helps your research or work, please consider citing SimDeblur.
   year =         {2021}
 }
 ```
-If you have any question, please contact me at `mingdengcao AT gmail.com`.
+If you have any question, please [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao AT gmail.com`.
