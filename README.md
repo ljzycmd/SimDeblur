@@ -50,6 +50,7 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
     - [x] GoPro [[Paper](https://arxiv.org/abs/1612.02177), [Data](https://seungjunnah.github.io/Datasets/gopro)]
     - [x] DVD [[Paper](https://arxiv.org/abs/1611.08387), [Data](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/)]
     - [x] REDS [[Paper](https://openaccess.thecvf.com/content_CVPRW_2019/html/NTIRE/Nah_NTIRE_2019_Challenge_on_Video_Deblurring_and_Super-Resolution_Dataset_and_CVPRW_2019_paper.html), [Data](https://seungjunnah.github.io/Datasets/reds)]
+    - [ ] BSD [[Paper](https://arxiv.org/abs/2106.16028), [Project](https://github.com/zzh-tech/ESTRNN), [Data](https://drive.google.com/file/d/19cel6QgofsWviRbA5IPMEv_hDbZ30vwH/view)]
 
 ### Dependencies and Installation
 * Python 3 (Conda is recommended)
