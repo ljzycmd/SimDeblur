@@ -16,7 +16,9 @@ The toolbox decomposes the deblurring framework into different components and on
 
 The toolbox contains most deep-learning based state-of-the-art deblurring algorithms, including MSCNN, SRN, DeblurGAN, EDVR, *etc*.
 
-- Distributed Training
+- Efficient
+
+SimDeblur supports distributed data-parallel training. 
 
 
 ### New Features
