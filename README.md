@@ -95,20 +95,26 @@ Then start training with single GPU:
 ```bash
 CUDA_VISIBLE_DEVICES=0 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 1
 ```
-multi GPU training:
+Multi GPU training:
 ```bash
 CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 4
 ```
+Util now, we only support single GPU Test and Validation:
+```bash
+CUDA_VISIBLE_DEVICES=0 python test.py ./config/dbn/dbn_dvd.yaml PATH_TO_CKPT
+```
 
-## 2 Build a module
-The SimDeblur also provides you to build each module.
+## 2 Build individual module
+The SimDeblur also provides you to build individual module.
 
-Build a dataset:
+**Build a dataset**:
 ```python
 from easydict import EasyDict as edict
 from simdeblur.dataset import build_dataset
 
-dataset = build_dataset(edict({
+# construct configs of target dataset.
+# SimDeblur adopts EasyDict to store configs.
+dataset_cfg = edict({
     "name": "DVD",
     "mode": "train",
     "sampling": "n_c",
@@ -126,39 +132,51 @@ dataset = build_dataset(edict({
         "RandomRotation90": {
             "p": 0.5 },
     }
-}))
+})
+
+dataset = build_dataset(dataset_cfg)
 
 print(dataset[0])
 ```
 
-Build a model:
+**Build a model**:
 ```python
+from easydict import EasyDict as edict
 from simdeblur.model import build_backbone
 
-model = build_backbone({
+model_cfg = edict({
     "name": "DBN",
     "num_frames": 5,
     "in_channels": 3,
     "inner_channels": 64
 })
 
+model = build_backbone(model_cfg)
+
 x = torch.randn(1, 5, 3, 256, 256)
 out = model(x)
 ```
-Build the loss:
+
+**Build a loss**:
 ```python 
+from easydict import EasyDict as edict
 from simdeblur.model import build_loss
 
-criterion = build_loss({
+criterion_cfg = {
     "name": "MSELoss",
-})
+}
+
+criterion = build_loss()
+
 x = torch.randn(2, 3, 256, 256)
 y = torch.randn(2, 3, 256, 256)
+
 print(criterion(x, y))
 ```
-And the optimizer and lr_scheduler also can be created by "build_optimizer" and "build_lr_scheduler" etc. 
+And the optimizer and lr_scheduler also can be created by the functions "build_optimizer" and "build_lr_scheduler" in the **simdeblur.scheduler**, *etc*. 
 
 ### Dataset Description
+Until now, SimDeblur supports the most popular image and video deblurring datasets, including GOPRO, DVD, and REDS. 
 
 Click [here](./simdeblur/dataset/README.md) for more information. 
 
@@ -180,4 +198,4 @@ If SimDeblur helps your research or work, please consider citing SimDeblur.
   year         = {2021}
 }
 ```
-If you have any question, please [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao AT gmail.com`.
+If you have any question, please [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao [AT] gmail.com`.
