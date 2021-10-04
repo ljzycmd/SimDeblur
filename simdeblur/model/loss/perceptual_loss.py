@@ -1,29 +1,50 @@
-# CMD
-# perceptual loss using vggnet with conv1_2, conv2_2, conv3_3 feature, before relu layer
+""" ************************************************
+* fileName: perceptual_loss.py
+* desc: Perceptual loss using vggnet with conv1_2, conv2_2, conv3_3 feature,
+        before relu layer.
+* author: mingdeng_cao
+* date: 2021/07/09 11:08
+* last revised: None
+************************************************ """
 
 
 import torch
-import torch.nn as nn 
-import torch.nn.functional as F 
+import torch.nn as nn
+import torch.nn.functional as F
 
-from ..layers.vgg import VGG19
+from torchvision.models import vgg19, vgg16
 
-from ...build import LOSS_REGISTRY
+from ..build import LOSS_REGISTRY
 
 
 @LOSS_REGISTRY.register()
-class PerceptualLoss(nn.Module):
-    def __init__(self, layer_weights = [1, 0.2, 0.04]):
+class PerceptualLossVGG19(nn.Module):
+    def __init__(self, layer_idx=[2, 7, 14], layer_weights=[1, 0.2, 0.04]):
+        super().__init__()
+        self.layer_idx = layer_idx
         self.layer_weights = layer_weights
-        self.vggnet = VGG19()
-        
+        self.vggnet_feats_layers = vgg19(pretrained=True).features
+
+    def vgg_forward(self, img):
+        selected_feats = []
+        out = img
+        self.vggnet_feats_layers = self.vggnet_feats_layers.to(img)
+        for i, layer in enumerate(self.vggnet_feats_layers):
+            out = layer(out)
+            if i in self.layer_idx:
+                selected_feats.append(out)
+            if i == self.layer_idx[-1]:
+                break
+        assert len(selected_feats) == len(self.layer_idx)
+        return selected_feats
+
     def forward(self, img1, img2):
-        features1 = self.vggnet(img1)
-        features2 = self.vggnet(img2)
+        selected_feats1 = self.vgg_forward(img1)
+        selected_feats2 = self.vgg_forward(img2)
 
         loss = 0
-        for feat1, feat2 in zip(features1, features2):
+        for i, (feat1, feat2) in enumerate(zip(selected_feats1, selected_feats2)):
             assert feat1.shape == feat2.shape, "The input tensor should be in same shape!"
-            loss += F.mse_loss(feat1, feat2)
-        
+            loss += F.mse_loss(feat1, feat2, reduction="sum") * self.layer_weights[i]
+
         return loss
