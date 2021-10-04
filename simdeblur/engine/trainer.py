@@ -206,11 +206,6 @@ class Trainer:
 
             self.after_iter()
 
-    def build_writers(self):
-        return [
-            SimpleMetricPrinter(),
-        ]
-
     def build_hooks(self):
         ret = [
             hooks.LRScheduler(self.lr_scheduler, self.optimizer),
