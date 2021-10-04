@@ -194,7 +194,9 @@ class Trainer:
     @torch.no_grad()
     def val(self):
         self.model.eval()
-        for self.batch_data in tqdm(self.val_datalocaer, desc="validation on gpu{}: ".format(self.cfg.args.local_rank)):
+        for self.batch_data in tqdm(self.val_datalocaer,
+                                    ncols=80,
+                                    desc=f"validation on gpu{self.cfg.args.local_rank}:"):
             self.before_iter()
             input_frames = self.preprocess(self.batch_data)
             self.outputs = self.model(input_frames)
