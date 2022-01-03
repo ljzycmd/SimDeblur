@@ -1,8 +1,6 @@
-# CMD
-
 import torch
 
-from utils import Registry
+from ..utils import Registry
 
 
 OPTIMIZER_REGISTRY = Registry("optimizer")
