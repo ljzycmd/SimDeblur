@@ -21,6 +21,8 @@ from .build import DATASET_REGISTRY
 
 import logging
 
+logger = logging.getLogger("simdeblur")
+
 
 @DATASET_REGISTRY.register()
 class REDS(torch.utils.data.Dataset):
@@ -101,10 +103,7 @@ class REDS(torch.utils.data.Dataset):
         assert self.frames, "Their is no frames in '{}'. ".format(
             self.cfg.root_gt)
 
-        # print(self.frames)
-        # print(self.video_frame_dict)
-        # print(self.video_length_dict)
-        logging.info(
+        logger.info(
             f"Total samples {len(self.frames)} are loaded for {self.cfg.mode}!")
 
     def __getitem__(self, idx):
@@ -170,9 +169,6 @@ class REDS(torch.utils.data.Dataset):
                 input_frames, gt_frames, self.cfg.augmentation)
             # input_frames, gt_frames = augment(input_frames, gt_frames)
 
-        # print("input frames: {} -- gt frames: {} with samplint mode '{}'. ".format(input_frames_name, gt_frames_name, self.cfg.sampling))
-        # print(gt_frames)
-        # print(input_frames)
         # To tensor with contingious array.
         gt_frames = torch.tensor(np.ascontiguousarray(gt_frames)).float()
         input_frames = torch.tensor(np.ascontiguousarray(input_frames)).float()

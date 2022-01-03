@@ -2,7 +2,6 @@ from .dvd import DVD
 from .gopro import GOPRO
 from .reds import REDS
 #
-from .build import build_dataset
+from .build import build_dataset, list_datasets
 
-
-__all__ = [k for k in globals().keys() if not k.startswith("_") ]
+__all__ = [k for k in globals().keys() if not k.startswith("_")]

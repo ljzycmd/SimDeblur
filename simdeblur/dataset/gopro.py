@@ -19,6 +19,8 @@ from .build import DATASET_REGISTRY
 
 import logging
 
+logger = logging.getLogger("simdeblur")
+
 
 @DATASET_REGISTRY.register()
 class GOPRO(torch.utils.data.Dataset):
@@ -89,10 +91,8 @@ class GOPRO(torch.utils.data.Dataset):
 
         assert self.frames, "Their is no frames in '{}'. ".format(
             self.cfg.root_gt)
-        # print(self.frames)
-        # print(self.video_frame_dict)
-        # print(self.video_length_dict)
-        logging.info(
+
+        logger.info(
             f"Total samples {len(self.frames)} are loaded for {self.cfg.mode}!")
 
     def __getitem__(self, idx):
@@ -134,6 +134,9 @@ class GOPRO(torch.utils.data.Dataset):
             self.cfg.root_gt, video_name, "sharp", "{}")
         input_frames_path = os.path.join(
             self.cfg.root_gt, video_name, "blur", "{}")
+        if self.cfg.get("use_gamma"):
+            input_frames_path = os.path.join(
+                self.cfg.root_gt, video_name, "blur_gamma", "{}")
         # Read images by opencv with format HWC, [0,1], RGB
         gt_frames = [read_img_opencv(gt_frames_path.format(
             frame_name))[..., ::-1] for frame_name in gt_frames_name]
@@ -149,9 +152,6 @@ class GOPRO(torch.utils.data.Dataset):
             input_frames, gt_frames = augment(
                 input_frames, gt_frames, self.cfg.augmentation)
 
-        # print("input frames: {} -- gt frames: {} with samplint mode '{}'. ".format(input_frames_name, gt_frames_name, self.cfg.sampling))
-        # print(gt_frames)
-        # print(input_frames)
         # To tensor with contingious array.
         gt_frames = torch.tensor(gt_frames.copy()).float()
         input_frames = torch.tensor(input_frames.copy()).float()
