@@ -7,12 +7,30 @@
 
 
 import os
+import time
 import logging
 from collections import OrderedDict
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from .metrics import calculate_psnr, calculate_ssim
 from .dist_utils import master_only
+
+
+def init_logger(log_file_path="./", name="simdeblur"):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    DATE_FORMAT = "%d %b %Y %H:%M:%S"
+    BASIC_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
+    formatter = logging.Formatter(fmt=BASIC_FORMAT, datefmt=DATE_FORMAT)
+    # add 2 handlers
+    console_handler = logging.StreamHandler()
+    file_handler = logging.FileHandler(os.path.join(log_file_path, "logs.log"), mode="a")
+    console_handler.setFormatter(formatter)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+    logger.propagate = False
+    logger.info(f"logs are saved to {log_file_path}")
 
 
 class LogBuffer:
@@ -37,24 +55,11 @@ class LogBuffer:
         self.n_history.clear()
 
 
-class UniformMetricWtiter:
-    def __init__(self, log_dir=None):
-        self.log_dir = log_dir
-        self.logger = logging.getLogger("simdeblur")
-
-    def write(self, log_dict, mode="train"):
-        pass
-
-
 class SimpleMetricPrinter:
-    def __init__(self, log_dir, log_name):
+    def __init__(self, log_dir):
         if not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
-        self.logger.addHandler(logging.FileHandler(
-            os.path.join(log_dir, log_name + ".json")))
-        self._last_write = None
+        self.logger = logging.getLogger("simdeblur")
 
     def write(self, log_dict, mode="train"):
         if mode == "train":
@@ -124,7 +129,7 @@ class TensorboardWriter:
                 if isinstance(log_dict.get("loss"), dict):
                     for k, v in log_dict.get("loss").items():
                         self.writer.add_scalar(
-                            f"train/{k}", v, log_dict["epoch"])
+                            f"train/{k}", v, log_dict["iter"])
                 else:
                     self.writer.add_scalar(
                         "train/loss", log_dict["loss"], log_dict["iter"])
@@ -132,7 +137,7 @@ class TensorboardWriter:
                 if isinstance(log_dict.get("metrics"), dict):
                     for k, v in log_dict.get("metrics").items():
                         self.writer.add_scalar(
-                            f"train/{k}", v, log_dict["epoch"])
+                            f"train/{k}", v, log_dict["iter"])
                 else:
                     self.writer.add_scalar(
                         "train/psnr", log_dict["psnr"], log_dict["iter"])
@@ -153,21 +158,3 @@ class TensorboardWriter:
             raise NotImplementedError
 
         self._last_write = log_dict
-
-
-class JSONMetricWriter:
-    def __init__(self, log_dir):
-        self.log_dir = log_dir
-
-    def write(self, log_dict, mode="train"):
-        self.logger.info(
-            "{} SimDeblur: epoch[{}/{}]--iter[{}/{}]--lr: {}--loss: {:.3f}--psnr: {:.2f}--ssim: {:.4f}--est_time: ".format(
-                datetime.now(),
-                log_dict["epoch"], log_dict["total_epochs"],
-                log_dict["iter"], log_dict["iters_per_epoch"],
-                log_dict["lr"],
-                log_dict["loss"],
-                log_dict["psnr"],
-                log_dict["ssim"],
-            )
-        )
