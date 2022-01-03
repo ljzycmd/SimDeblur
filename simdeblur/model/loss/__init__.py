@@ -1,5 +1,7 @@
 from torch.nn import MSELoss, L1Loss
-from .loss import CharbonnierLoss
+from .charbonnier_loss import CharbonnierLoss
+from .perceptual_loss import PerceptualLossVGG19
+from .hem_loss import HEM
 
 from ..build import LOSS_REGISTRY
 

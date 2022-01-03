@@ -1,7 +1,7 @@
 """ ************************************************
 * fileName: perceptual_loss.py
 * desc: Perceptual loss using vggnet with conv1_2, conv2_2, conv3_3 feature,
-        before relu layer.
+        before relu layer. 
 * author: mingdeng_cao
 * date: 2021/07/09 11:08
 * last revised: None
@@ -19,11 +19,13 @@ from ..build import LOSS_REGISTRY
 
 @LOSS_REGISTRY.register()
 class PerceptualLossVGG19(nn.Module):
-    def __init__(self, layer_idx=[2, 7, 14], layer_weights=[1, 0.2, 0.04]):
+    def __init__(self, layer_idx=[2, 7, 14], layer_weights=[1, 0.2, 0.04], reduction="sum"):
         super().__init__()
         self.layer_idx = layer_idx
         self.layer_weights = layer_weights
         self.vggnet_feats_layers = vgg19(pretrained=True).features
+
+        self.reduction = reduction
 
     def vgg_forward(self, img):
         selected_feats = []
@@ -45,6 +47,6 @@ class PerceptualLossVGG19(nn.Module):
         loss = 0
         for i, (feat1, feat2) in enumerate(zip(selected_feats1, selected_feats2)):
             assert feat1.shape == feat2.shape, "The input tensor should be in same shape!"
-            loss += F.mse_loss(feat1, feat2, reduction="sum") * self.layer_weights[i]
+            loss += F.mse_loss(feat1, feat2, reduction=self.reduction) * self.layer_weights[i]
 
         return loss
