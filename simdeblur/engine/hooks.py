@@ -12,10 +12,9 @@ import time
 import torch
 import torch.distributed as dist
 
-from datetime import datetime
-from utils.logger import LogBuffer
+from ..utils.logger import LogBuffer
 from torchvision.utils import save_image
-from utils.metrics import calculate_psnr, calculate_ssim
+from ..utils.metrics import calculate_psnr, calculate_ssim
 
 
 class HookBase:
@@ -39,16 +38,21 @@ class HookBase:
 
 
 class LRScheduler(HookBase):
-    def __init__(self, lr_scheduler, optimizer):
+    def __init__(self, lr_scheduler):
         self._lr_scheduler = lr_scheduler
-        self._optimizer = optimizer
 
     def before_train(self, trainer):
-        self._optimizer = self._optimizer or trainer.optimizer
         self._lr_scheduler = self._lr_scheduler or trainer.lr_scheduler
 
     def after_epoch(self, trainer):
-        self._lr_scheduler.step()
+        if isinstance(self._lr_scheduler, dict):
+            for lr_sche in self._lr_scheduler.values():
+                lr_sche.step()
+        elif isinstance(self._lr_scheduler, list):
+            for lr_sche in self._lr_scheduler:
+                lr_sche.step()
+        else:
+            self._lr_scheduler.step()
 
 
 class CKPTSaver(HookBase):
@@ -89,7 +93,7 @@ class PeriodicWriter(HookBase):
         self.timer_dict["after_epoch"] = time.time()
 
         # when evaluating...
-        if not trainer.model.training:
+        if not trainer.arch.model.training:
             with torch.no_grad():
                 psnr = torch.mean(torch.tensor(
                     self.log_buffer.var_history["psnr"]).to(trainer.device))
@@ -124,7 +128,7 @@ class PeriodicWriter(HookBase):
         self.timer_dict["iter_time"] += time.time() - \
             self.timer_dict["after_iter"]
 
-        if trainer.model.training:
+        if trainer.arch.model.training:
             self.timer_dict["total_time"] += self.timer_dict["iter_time"]
             if (trainer.iters + 1) % self._period == 0:
                 total_train_epochs = trainer.cfg.schedule.epochs - trainer.start_epoch
@@ -141,29 +145,30 @@ class PeriodicWriter(HookBase):
                 # TODO create the metrics calculating Hook
                 # flatten the gt_frames(b, n, c, h, w) to 4 dims tensor (b, n, c, h, w)
                 psnr = calculate_psnr(trainer.batch_data["gt_frames"].flatten(
-                    0, 1).to(trainer.device), trainer.outputs.detach())
+                    0, 1).to(trainer.device), trainer.outputs["results"].detach())
                 ssim = calculate_ssim(trainer.batch_data["gt_frames"].flatten(
-                    0, 1).to(trainer.device), trainer.outputs.detach())
+                    0, 1).to(trainer.device), trainer.outputs["results"].detach())
 
                 # reduce the tensor from
                 if trainer.cfg.args.gpus > 1:
+                    # reduce the metrics
                     dist.reduce(psnr, 0)
                     dist.reduce(ssim, 0)
 
                     # reduce the loss
-                    if isinstance(trainer.loss, dict):
-                        for loss_type in trainer.loss.keys():
-                            dist.reduce(trainer.loss[loss_type], 0)
+                    if isinstance(trainer.outputs["loss"], dict):
+                        for loss_type in trainer.outputs["loss"].keys():
+                            dist.reduce(trainer.outputs["loss"][loss_type], 0)
                     else:
-                        dist.reduce(trainer.loss, 0)
+                        dist.reduce(trainer.outputs["loss"], 0)
 
                 if trainer.cfg.args.local_rank == 0:
-                    if isinstance(trainer.loss, dict):
+                    if isinstance(trainer.outputs["loss"], dict):
                         loss = {k: v.item()/(trainer.cfg.args.gpus if trainer.cfg.args.gpus > 0 else 1)
-                                for k, v in trainer.loss.items()}
+                                for k, v in trainer.outputs["loss"].items()}
                     else:
-                        loss = trainer.loss.item() / \
-                            trainer.cfg.args.gpus if trainer.cfg.args.gpus > 0 else trainer.loss.item()
+                        loss = trainer.outputs["loss"].item() / \
+                            trainer.cfg.args.gpus if trainer.cfg.args.gpus > 0 else trainer.outputs["loss"].item()
 
                     log_dict = {
                         "epoch": trainer.epochs + 1,
@@ -190,10 +195,10 @@ class PeriodicWriter(HookBase):
             # calculate metrics
             psnr = calculate_psnr(
                 trainer.batch_data["gt_frames"].flatten(0, 1).to(trainer.device),
-                trainer.outputs.detach())
+                trainer.outputs["results"].detach())
             ssim = calculate_ssim(
                 trainer.batch_data["gt_frames"].flatten(0, 1).to(trainer.device),
-                trainer.outputs.detach())
+                trainer.outputs["results"].detach())
 
             self.log_buffer.update({"psnr": psnr, "ssim": ssim}, count=1)
 
@@ -215,11 +220,11 @@ class PeriodicWriter(HookBase):
                     # save each frame separately
                     for i in range(gt_length):
                         img_to_save = None
-                        if trainer.outputs.dim() == 4:  # (b*n, 3, h, w)
-                            img_to_save = trainer.outputs[batch_idx *
+                        if trainer.outputs["results"].dim() == 4:  # (b*n, 3, h, w)
+                            img_to_save = trainer.outputs["results"][batch_idx *
                                                           gt_length+i: batch_idx*gt_length+i+1]
-                        elif trainer.outputs.dim() == 5:  # (b, n, 3, h, w)
-                            img_to_save = trainer.outputs[batch_idx:batch_idx, i]
+                        elif trainer.outputs["results"].dim() == 5:  # (b, n, 3, h, w)
+                            img_to_save = trainer.outputs["results"][batch_idx:batch_idx, i]
                         else:
                             raise NotImplementedError
                         save_image(
@@ -253,9 +258,9 @@ class MetriCalculator(HookBase):
         # calculate metrics
         # flatten the gt_frames(b, n, c, h, w) to 4 dims tensor (b, n, c, h, w)
         psnr = calculate_psnr(
-            trainer.batch_data["gt_frames"].flatten(0, 1).to(trainer.device), trainer.outputs.detach())
+            trainer.batch_data["gt_frames"].flatten(0, 1).to(trainer.device), trainer.outputs["results"].detach())
         ssim = calculate_ssim(
-            trainer.batch_data["gt_frames"].flatten(0, 1).to(trainer.device), trainer.outputs.detach())
+            trainer.batch_data["gt_frames"].flatten(0, 1).to(trainer.device), trainer.outputs["results"].detach())
 
         ret = {}
         ret["psnr"] = psnr.item()

@@ -4,6 +4,7 @@
 * author: mingdeng_cao
 * lsat revised: 2021.6.7
 * logs:
+    10.15, Update the Trainer to adapt different meta ARCHs.
     7.14, Update the testing process.
     6.07, Update the logging.
     4.25, Update the optimizer and lr_scheduler builder, considering the "None" type.
@@ -21,20 +22,20 @@ from torchvision.utils import save_image
 from tqdm import tqdm
 from datetime import datetime
 
-
 from simdeblur.dataset import build_dataset
 from simdeblur.scheduler import build_optimizer, build_lr_scheduler
 from simdeblur.model import build_backbone, build_meta_arch, build_loss
-from simdeblur.utils.logger import LogBuffer, SimpleMetricPrinter, TensorboardWriter
+from simdeblur.utils.logger import LogBuffer, SimpleMetricPrinter, TensorboardWriter, init_logger
 from simdeblur.utils.metrics import calculate_psnr, calculate_ssim
 from simdeblur.utils import dist_utils
+from simdeblur.config import save_configs_to_yaml
 
 from simdeblur.engine import hooks
 
 
-logging.basicConfig(
-    format='%(asctime)s - %(levelname)s - SimDeblur: %(message)s', level=logging.INFO)
-logging.info("******* A simple deblurring framework ********")
+# logging.basicConfig(
+#     format='%(asctime)s - %(levelname)s - SimDeblur: %(message)s', level=logging.INFO)
+# logging.info("******* A simple deblurring framework ********")
 
 
 class Trainer:
@@ -47,32 +48,35 @@ class Trainer:
         # initialize the distributed training
         if cfg.args.gpus > 1:
             dist_utils.init_distributed(cfg)
-
         # create the working dirs
-        self.current_work_dir = os.path.join(cfg.work_dir, cfg.name)
+        self.proj_dir = os.path.join(cfg.work_dir, cfg.name)
+        self.experiment_name = f"{len(os.listdir(self.proj_dir)) + 1:03d}"
+        self.experiment_time = cfg.experiment_time
+        self.current_work_dir = os.path.join(self.proj_dir, self.experiment_time)
         if not os.path.exists(self.current_work_dir):
             os.makedirs(self.current_work_dir, exist_ok=True)
+        init_logger(log_file_path=self.current_work_dir)
 
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu")
-
-        # default logger
-        logger = logging.getLogger("simdeblur")
-        logger.setLevel(logging.INFO)
-        logger.addHandler(
-            logging.FileHandler(
-                os.path.join(
-                    self.current_work_dir, self.cfg.name.split("_")[0] + ".json"))
-        )
+        # self.device = torch.device("cpu")
 
         # construct the modules
-        self.model = self.build_model(cfg).to(self.device)
-        self.criterion = {k: v.to(self.device) for k, v in self.build_losses(cfg.loss.criterion).items()}
+        self.arch = build_meta_arch(self.cfg)
+
+        # construct data
         self.train_dataloader, self.train_sampler = self.build_dataloder(
             cfg, mode="train")
         self.val_datalocaer, _ = self.build_dataloder(cfg, mode="val")
-        self.optimizer = self.build_optimizer(cfg, self.model)
-        self.lr_scheduler = self.build_lr_scheduler(cfg, self.optimizer)
+
+        # build the optimizer and lr_scheduler
+        if hasattr(self.arch, "build_scheduler"):
+            # arch-specific optimizer and lr_scheduler building
+            self.optimizer, self.lr_scheduler = self.arch.build_scheduler()
+        else:
+            # default general optimizer and lr_scheduler building
+            self.optimizer = self.build_optimizer(cfg, self.arch.model)
+            self.lr_scheduler = self.build_lr_scheduler(cfg, self.optimizer)
 
         # trainer hooks
         self._hooks = self.build_hooks()
@@ -85,8 +89,7 @@ class Trainer:
         self.start_epoch = 0
         self.start_iter = 0
         self.total_train_epochs = self.cfg.schedule.epochs
-        self.total_train_iters = self.total_train_epochs * \
-            len(self.train_dataloader)
+        self.total_train_iters = self.total_train_epochs * len(self.train_dataloader)
 
         # resume or load the ckpt as init-weights
         if self.cfg.resume_from != "None":
@@ -97,41 +100,30 @@ class Trainer:
 
     def preprocess(self, batch_data):
         """
-        prepare for input
+        prepare for model input
         """
-        return batch_data["input_frames"].to(self.device)
+        return self.arch.preprocess(batch_data)
 
     def postprocess(self):
         """
         post process for model outputs
         """
-        # When the outputs is a img tensor
+        self.outputs["results"] = self.arch.postprocess(self.outputs["results"])
+
+        # When the outputs is a video tensor
         if isinstance(self.outputs, torch.Tensor) and self.outputs.dim() == 5:
             self.outputs = self.outputs.flatten(0, 1)
 
-    def calculate_loss(self, batch_data, model_outputs):
-        """
-        calculate the loss
-        """
-        gt_frames = batch_data["gt_frames"].to(self.device).flatten(0, 1)
-        if model_outputs.dim() == 5:
-            model_outputs = model_outputs.flatten(0, 1)  # (b*n, c, h, w)
-        loss = 0.
-        for cri, weight in zip(self.criterion.values(), self.cfg.loss.weights):
-            loss += cri(gt_frames, model_outputs) * weight
-        return loss
-
-    def update_params(self):
+    def update_params(self, batch_data):
         """
         update params
         pipline: zero_grad, backward and update grad
         """
-        self.optimizer.zero_grad()
-        self.loss.backward()
-        self.optimizer.step()
+        # arch-specific parameters updation
+        self.outputs = self.arch.update_params(batch_data, self.optimizer)
 
-    def train(self, **kwargs):
-        self.model.train()
+    def train(self):
+        self.arch.model.train()
         self.before_train()
         logger = logging.getLogger("simdeblur")
         logger.info("Starting training...")
@@ -141,14 +133,9 @@ class Trainer:
             for self.batch_idx, self.batch_data in enumerate(self.train_dataloader):
                 self.before_iter()
 
-                input_frames = self.preprocess(self.batch_data)
+                self.outputs = self.arch.update_params(self.batch_data, self.optimizer)
 
-                self.outputs = self.model(input_frames)
                 self.postprocess()
-
-                self.loss = self.calculate_loss(self.batch_data, self.outputs)
-
-                self.update_params()
 
                 self.iters += 1
                 self.after_iter()
@@ -178,7 +165,7 @@ class Trainer:
         for h in self._hooks:
             h.after_epoch(self)
 
-        self.model.train()
+        self.arch.model.train()
 
     def before_iter(self):
         for h in self._hooks:
@@ -193,105 +180,111 @@ class Trainer:
 
     @torch.no_grad()
     def val(self):
-        self.model.eval()
+        self.arch.model.eval()
         for self.batch_data in tqdm(self.val_datalocaer,
                                     ncols=80,
                                     desc=f"validation on gpu{self.cfg.args.local_rank}:"):
             self.before_iter()
-            input_frames = self.preprocess(self.batch_data)
-            self.outputs = self.model(input_frames)
-            if isinstance(self.outputs, list):
-                self.outputs = self.outputs[0]
+
+            if hasattr(self.arch, "inference"):
+                self.outputs = {"results": self.arch.inference(self.preprocess(self.batch_data))}
+            else:
+                self.outputs = {"results": self.arch.model(self.preprocess(self.batch_data))}
+
             self.postprocess()
 
             self.after_iter()
 
     def build_hooks(self):
         ret = [
-            hooks.LRScheduler(self.lr_scheduler, self.optimizer),
+            hooks.LRScheduler(self.lr_scheduler),
             hooks.CKPTSaver(**self.cfg.ckpt),
             # logging on the main process
             hooks.PeriodicWriter([
-                SimpleMetricPrinter(self.current_work_dir,
-                                    self.cfg.name.split("_")[0]),
-                TensorboardWriter(os.path.join(
-                    self.current_work_dir, self.cfg.name.split("_")[0], str(datetime.now()))),
+                SimpleMetricPrinter(self.current_work_dir),
+                TensorboardWriter(self.current_work_dir),
             ],
-                **self.cfg.logging),
+            **self.cfg.logging),
         ]
 
         return ret
 
     def resume_or_load_ckpt(self, ckpt=None, ckpt_path=None):
-        if ckpt is not None:
-            try:
-                self.model.load_state_dict(ckpt)
-            except Exception as e:
-                logging.warning(e)
-                logging.warning("Connot load the ckpt from the input ckpt !!!")
-        else:
-            try:
-                kwargs = {'map_location': lambda storage,
-                          loc: storage.cuda(self.cfg.args.local_rank)}
-                ckpt = torch.load(ckpt_path, **kwargs)
+        try:
+            kwargs = {'map_location': lambda storage,
+                      loc: storage.cuda(self.cfg.args.local_rank)}
+            ckpt = torch.load(ckpt_path, **kwargs)
 
-                meta_info = ckpt["mata"]
-                model_ckpt = ckpt["model"]
-                optimizer_ckpt = ckpt["optimizer"]
-                lr_scheduler_ckpt = ckpt["lr_scheduler"]
+            # initial mode: load the ckpt as the initialized weights
+            logging.info("Inittial mode: %s, checkpoint loaded from %s." % (
+                self.cfg.get("init_mode"), self.cfg.resume_from))
+            if not self.cfg.get("init_mode"):
+                # load the ckpt into arch.model
+                self.arch.load_ckpt(ckpt, strict=True)
 
-                if self.cfg.args.gpus <= 1:
-                    # for cpu or single gpu model, it doesn't have the .module property
-                    model_ckpt = {k[7:]: v for k, v in model_ckpt.items()}
-
-                # initial mode: load the ckpt as the initialized weights
-                if not self.cfg.get("init_mode"):
-                    # strict=True if resume from exist .pth,
-                    self.model.load_state_dict(model_ckpt, strict=True)
-                    # load optimizer and lr_scheduler
-                    self.optimizer.load_state_dict(optimizer_ckpt)
-                    self.lr_scheduler.load_state_dict(lr_scheduler_ckpt)
-                    # generate the idx
-                    self.start_epoch = self.epochs = meta_info["epochs"]
-                    self.start_iter = self.iters = self.start_epoch * \
-                        len(self.train_dataloader)
+                # load optimizer and lr_scheduler
+                if isinstance(self.optimizer, dict):
+                    for name in self.optimizer.keys():
+                        self.optimizer[name].load_state_dict(ckpt["optimizer"][name])
                 else:
-                    # strict=Fasle if fine-tune from exist .pth,
-                    self.model.load_state_dict(model_ckpt, strict=False)
+                    self.optimizer.load_state_dict(ckpt["optimizer"])
 
-                logging.info("Inittial mode: %s, checkpoint loaded from %s." % (
-                    self.cfg.get("init_mode"), self.cfg.resume_from))
-            except Exception as e:
-                logging.warning(e)
-                logging.warning("Checkpoint loaded failed, cannot find ckpt file from %s." % (
-                    self.cfg.resume_from))
+                if isinstance(self.optimizer, dict):
+                    for name in self.optimizer.keys():
+                        self.lr_scheduler[name].load_state_dict(ckpt["lr_scheduler"][name])
+                else:
+                    self.lr_scheduler.load_state_dict(ckpt["lr_scheduler"])
+                # generate the idx
+                meta_info = ckpt["mata"]
+                self.start_epoch = self.epochs = meta_info["epochs"]
+                self.start_iter = self.iters = self.start_epoch * \
+                    len(self.train_dataloader)
+            else:
+                # load the ckpt into arch.model with false strict
+                self.arch.load_ckpt(ckpt, strict=True)
 
-    def save_ckpt(self, out_dir=None, ckpt_name="epoch_{}.pth"):
-        meta_info = {"epochs": self.epochs + 1, "iters": self.iters + 1}
+        except Exception as e:
+            logging.warning(e)
+            logging.warning("Checkpoint loaded failed, cannot find ckpt file from %s." % (
+                self.cfg.resume_from))
 
-        ckpt_name = ckpt_name.format(self.epochs + 1)
+    def save_ckpt(self, out_dir=None, ckpt_name="epoch_{}.pth", dence_saving=False):
+        meta_info = {
+            "epochs": self.epochs + 1,
+            "iters": self.iters + 1
+        }
+
+        ckpt_name = ckpt_name.format(self.epochs + 1) if dence_saving else "latest.pth"
         if out_dir is None:
-            out_dir = os.path.join(self.cfg.work_dir, self.cfg.name)
+            out_dir = self.current_work_dir
         if not os.path.exists(out_dir):
             os.makedirs(out_dir, exist_ok=True)
         ckpt_path = os.path.join(out_dir, ckpt_name)
 
+        # construct checkpoint
         ckpt = {
             # TODO change the key mata to meta...
             "mata": meta_info,
-            "model": self.model.state_dict(),
-            "optimizer": self.optimizer.state_dict(),
-            "lr_scheduler": self.lr_scheduler.state_dict()
+            "optimizer":
+                {k: v.state_dict() for k, v, in self.optimizer.items()} if isinstance(
+                    self.optimizer, dict) else self.optimizer.state_dict(),
+            "lr_scheduler":
+                {k: v.state_dict() for k, v in self.lr_scheduler.items()} if isinstance(
+                    self.lr_scheduler, dict) else self.lr_scheduler.state_dict()
         }
+        ckpt.update(self.arch.generate_ckpt())
 
         with open(ckpt_path, "wb") as f:
             torch.save(ckpt, ckpt_path)
             f.flush()
 
     def get_current_lr(self):
-        assert self.lr_scheduler.get_last_lr(
-        )[0] == self.optimizer.param_groups[0]["lr"]
-        return self.optimizer.param_groups[0]["lr"]
+        if isinstance(self.optimizer, dict):
+            return {k: optim.param_groups[0]["lr"] for k, optim in self.optimizer.items()}
+        else:
+            assert self.lr_scheduler.get_last_lr(
+            )[0] == self.optimizer.param_groups[0]["lr"]
+            return self.optimizer.param_groups[0]["lr"]
 
     @classmethod
     def build_model(cls, cfg):
@@ -304,7 +297,7 @@ class Trainer:
             rank = cfg.args.local_rank
             model = nn.parallel.DistributedDataParallel(model.cuda(), device_ids=[rank], output_device=rank)
         if cfg.args.local_rank == 0:
-            logger = logging.getLogger(__name__)
+            logger = logging.getLogger("simdeblur")
             logger.info("Model:\n{}".format(model))
         return model
 
@@ -371,48 +364,61 @@ class Trainer:
         Args:
             cfg(edict): the config file for testing, which contains "model" and "test dataloader" configs etc.
         """
-        logger = logging.getLogger(__name__)
+        experiment_time = time.strftime("%Y%m%d_%H%M%S")
+        current_work_dir = os.path.join(cfg.work_dir, cfg.name, "tested", experiment_time)
+        if not os.path.exists(current_work_dir):
+            os.makedirs(current_work_dir, exist_ok=True)
+        init_logger(log_file_path=current_work_dir)
+        logger = logging.getLogger("simdeblur")
 
         if cfg.args.gpus > 1:
             dist_utils.init_distributed(cfg)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        model = Trainer.build_model(cfg).to(device)
+        arch = build_meta_arch(cfg)
         test_dataloader, _ = Trainer.build_dataloder(cfg, "val")
 
+        # load the trained checkpoint
         try:
             kwargs = {'map_location': lambda storage,
                       loc: storage.cuda(cfg.args.local_rank)}
             ckpt = torch.load(os.path.abspath(cfg.args.ckpt_file), **kwargs)
 
-            model_ckpt = ckpt["model"]
-            # print(model_ckpt.keys())
-            if cfg.args.gpus <= 1:
-                # for cpu or single gpu model, it doesn't have the .module property
-                model_ckpt = {k[7:]: v for k, v in model_ckpt.items()}
-            # strict=false if fine-tune from exist .pth,
-            model.load_state_dict(model_ckpt, strict=True)
+            arch.load_ckpt(ckpt, strict=True)
 
-            logging.info("Using checkpoint loaded from %s for testing." %
-                         (cfg.args.ckpt_file))
+            logger.info("Using checkpoint loaded from %s for testing." %
+                        (cfg.args.ckpt_file))
         except Exception as e:
-            logging.warning(e)
-            logging.warning("Checkpoint loaded failed, cannot find ckpt file from %s." % (
+            logger.warning(e)
+            logger.warning("Checkpoint loaded failed, cannot find ckpt file from %s." % (
                 cfg.args.ckpt_file))
 
-        model.eval()
+        arch.model.eval()
         psnr_dict = {}
         ssim_dict = {}
         total_time = 0.
         with torch.no_grad():
-            for batch_data in tqdm(test_dataloader, desc="validation on gpu{}: ".format(cfg.args.local_rank)):
-                input_frames = batch_data["input_frames"].to(device)
+            for batch_data in tqdm(test_dataloader,
+                                   ncols=80,
+                                   desc=f"validation on gpu{cfg.args.local_rank}:"):
+                input_frames = arch.preprocess(batch_data)
                 gt_frames = batch_data["gt_frames"].to(device)
 
-                outputs = model(input_frames)
+                # record the testing time.
+                torch.cuda.synchronize()
+                time_start = time.time()
+                if hasattr(arch, "inference"):
+                    outputs = arch.postprocess(arch.inference(input_frames))
+                else:
+                    outputs = arch.postprocess(arch.model(input_frames))
+                torch.cuda.synchronize()
+                total_time += time.time() - time_start
 
+                # print("video name: ", batch_data["video_name"])
+                # print("frame name: ", batch_data["gt_names"])
                 # calculate metrics
                 b, n, c, h, w = gt_frames.shape
+                outputs =  outputs.view(b, n, c, h, w)
                 # single image output
                 if outputs.dim() == 4:
                     outputs = outputs.detach().unsqueeze(1)  # (b, 1, c, h, w)
@@ -427,14 +433,14 @@ class Trainer:
 
                         # save the output images
                         save_path_base = os.path.abspath(
-                            os.path.join(cfg.work_dir, cfg.name, "tested", batch_data["video_name"][b_idx]))
+                            os.path.join(current_work_dir, batch_data["video_name"][b_idx]))
                         if not os.path.exists(save_path_base):
                             os.makedirs(save_path_base, exist_ok=True)
                         save_path = os.path.join(
                             save_path_base, batch_data["gt_names"][n_idx][b_idx])
                         save_image(outputs[b_idx, n_idx:n_idx+1], save_path)
                         # save testing logs
-                        with open(os.path.abspath(os.path.join(cfg.work_dir, cfg.name, "tested", "test_log.txt")), "a") as f:
+                        with open(os.path.abspath(os.path.join(current_work_dir, "test_log.txt")), "a") as f:
                             f.write("{}, {}, {}, {} \n".format(
                                 batch_data["video_name"][b_idx],
                                 batch_data["gt_names"][n_idx][b_idx],
