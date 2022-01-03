@@ -9,7 +9,7 @@
 import os
 import yaml
 from easydict import EasyDict as edict
-
+import logging
 
 def build_config_from_file(cfg_path):
     """
@@ -68,3 +68,20 @@ def merge_args(cfg: edict, args):
         if k in cfg.keys() and v is not None:
             cfg.update({k: v})
     return cfg
+
+
+def save_configs_to_yaml(cfg: edict, save_path: str):
+    """
+    save the config file to a .yaml file
+    """
+    def edict_to_dict(cfg):
+        if not (isinstance(cfg, dict) or isinstance(cfg, edict)):
+            return cfg
+        if isinstance(cfg, edict):
+            cfg = dict(cfg)
+        for k, v in cfg.items():
+            cfg[k] = edict_to_dict(v)
+        return cfg
+    cfg = edict_to_dict(cfg)
+    with open(save_path, "w") as f:
+        yaml.dump(cfg, f)
