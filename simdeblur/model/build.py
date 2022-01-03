@@ -1,5 +1,5 @@
 import copy
-from utils.registry import Registry
+from ..utils.registry import Registry
 
 BACKBONE_REGISTRY = Registry("backbone")
 LOSS_REGISTRY = Registry("loss")
@@ -12,7 +12,7 @@ def build(cfg, registry, args=None):
     Args:
         cfg (dict): the config of the modules
         registry(Registry): A registry the module belongs to.
-    
+
     Returns:
         The built module.
     """
@@ -27,8 +27,40 @@ def build_backbone(cfg):
 
 
 def build_loss(cfg):
+    """
+    build a loss from the loss config
+    """
     return build(cfg, LOSS_REGISTRY)
 
 
 def build_meta_arch(cfg):
-    return build(cfg, META_ARCH_REGISTRY)
+    name = cfg.meta_arch
+    ret = META_ARCH_REGISTRY.get(name)(cfg)
+    return ret
+
+
+def list_backbones(name=None):
+    """
+    List all available backbones.
+    Args:
+        name: (TODO) list specific models corresponds to a given name.
+    """
+    return list(BACKBONE_REGISTRY._obj_map.keys())
+
+
+def list_meta_archs(name=None):
+    """
+    List all available meta model architectures
+    Args:
+        name: (TODO) list specific archs corresponds to a given name.
+    """
+    return list(META_ARCH_REGISTRY._obj_map.keys())
+
+
+def list_losses(name=None):
+    """
+    List all available losses
+    Args:
+        name: (TODO) list specific losses corresponds to a given name.
+    """
+    return list(LOSS_REGISTRY._obj_map.keys())
