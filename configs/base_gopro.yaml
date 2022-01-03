@@ -60,3 +60,5 @@ dataset:
         loader:
             batch_size: 1
             num_workers: 1
+
+meta_arch: "SingleScalePlainCNN"

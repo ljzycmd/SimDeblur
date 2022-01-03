@@ -1,13 +1,13 @@
 dataset:
     train:
-        name: DVD
+        name: BSD
         mode: train
         
         sampling: n_c  # "n_n" and "n_c" , "n_l", "n_r"
         overlapping: True
         interval: 1
         
-        root_gt: ./datasets/DVD/quantitative_datasets
+        root_gt: ./datasets/BSD/BSD_3ms24ms/train
         data_type: "imgs"
         num_frames: 5
         
@@ -30,14 +30,14 @@ dataset:
             
 
     val:
-        name: "DVD"
-        mode: "val"
+        name: BSD
+        mode: val
         
-        sampling: "dvd_test"  # "n_n" and "n_c" , "n_l", "n_r"
+        sampling: n_c  # "n_n" and "n_c" , "n_l", "n_r"
         overlapping: True
         interval: 1
         
-        root_gt: "./datasets/DVD/test"
+        root_gt: ./datasets/BSD/BSD_3ms24ms/valid
         data_type: "imgs"
         num_frames: 5
 
@@ -46,19 +46,19 @@ dataset:
             num_workers: 1
     
     test:
-        name: "DVD"
-        mode: "val"
+        name: BSD
+        mode: val
         
-        sampling: "n_c"  # "n_n" and "n_c" , "n_l", "n_r"
+        sampling: n_c  # "n_n" and "n_c" , "n_l", "n_r"
         overlapping: True
         interval: 1
         
-        root_gt: "./datasets/DVD/quantitative_datasets"
+        root_gt: ./datasets/BSD/BSD_3ms24ms/valid
         data_type: "imgs"
         num_frames: 5
 
         loader:
             batch_size: 1
-            num_workers: 2
+            num_workers: 1
 
 meta_arch: "SingleScalePlainCNN"
