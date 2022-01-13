@@ -6,6 +6,12 @@ SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and 
 <img src=./docs/reds_020.gif>
 </div>
 
+<style>
+table {
+margin: auto;
+}
+</style>
+
 ### Major Features
 
 - Modular Design
@@ -47,6 +53,7 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
     - [x] IFIRNN [[Paper](https://openaccess.thecvf.com/content_CVPR_2019/html/Nah_Recurrent_Neural_Networks_With_Intra-Frame_Iterations_for_Video_Deblurring_CVPR_2019_paper.html)]
     - [x] CDVD-TSP [[Paper](https://arxiv.org/abs/2004.02501), [Project](https://github.com/csbhr/CDVD-TSP)]
     - [x] ESTRNN [[Paper](https://www.ecva.net/papers/eccv_2020/papers_ECCV/html/5116_ECCV_2020_paper.php), [Project](https://github.com/zzh-tech/ESTRNN)]
+    - [ ] PVDNet [[Paper](https://arxiv.org/abs/2108.09982),[Project](https://github.com/codeslake/PVDNet)]
 
 * Benchmarks
     - [x] GoPro [[Paper](https://arxiv.org/abs/1612.02177), [Data](https://seungjunnah.github.io/Datasets/gopro)]
@@ -74,6 +81,14 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
 
 # Usage
 You can open the [Colab Notebook](https://colab.research.google.com/drive/13dNBB38U_scDI46EHQ-V1GEgDMVtj5mx?usp=sharing) to learn about basic usage and see the deblurring performance.
+
+The design of SimDeblur consists of **FOUR** main parts as follows:
+| Dataset | Model  | Scheduler | Engine |
+|:-------:|:------:|:---------:|:------:|
+|Dataset-specific classes | The backbone, losses, and meta_archs | Opeimizer, LR scheduler | **Trainer**, and some hook function during model training process|
+
+Note that the dataset, model and scheduler can be constructed with config (EasyDict) with corresponding *build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}* functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics.
+
 ## 1 Start with trainer
 You can construct a simple training process use the default trainer like following:
 ```python
@@ -198,4 +213,4 @@ If SimDeblur helps your research or work, please consider citing SimDeblur.
   year         = {2021}
 }
 ```
-If you have any question, please [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao [AT] gmail.com`.
+If you have any questions, please feel free to [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao [AT] gmail.com`, and I will try to solve your problem.
