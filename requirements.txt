@@ -5,3 +5,7 @@ scipy
 tensorboard
 easydict
 tqdm
+einops
+opencv-python
+dataclasses
+cupy
