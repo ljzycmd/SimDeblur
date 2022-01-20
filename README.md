@@ -66,7 +66,7 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
 ### Dependencies and Installation
 * Python 3 (Conda is recommended)
 * Pytorch 1.5.1 (with GPU)
-* CUDA 10.2+ 
+* CUDA 10.1+ with NVCC
 1. Clone the repositry or download the zip file
    ```
     git clone https://github.com/ljzycmd/SimDeblur.git
