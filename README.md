@@ -28,7 +28,9 @@ SimDeblur supports distributed data-parallel training.
 
 
 ### New Features
-[2021/4/7] Provide some project demos implemented under SimDeblur: SRN and MSCNN.
+[2022/1/20] We transfer some checkpoints from the open-sourced repos into SimDeblur framework! We can find them [here](https://drive.google.com/drive/folders/1ukr-iLyxSMHVJJswHgGOF6QcQqOZwaLO?usp=sharing).
+
+[2022/1/1] Support real-world video deblurring dataset: BSD.
 
 [2021/3/31] Support DVD, GoPro and REDS video deblurring datasets. 
 
