@@ -28,7 +28,9 @@ SimDeblur supports distributed data-parallel training.
 
 
 ### New Features
-[2022/1/20] We transfer some checkpoints from the open-sourced repos into SimDeblur framework! We can find them [here](https://drive.google.com/drive/folders/1ukr-iLyxSMHVJJswHgGOF6QcQqOZwaLO?usp=sharing).
+[2022/1/21] We add Restormer model. Note that it can only works on PyTorch1.8+.
+
+[2022/1/20] We transfer some checkpoints from the open-sourced repos into SimDeblur framework! You can find them [here](https://drive.google.com/drive/folders/1ukr-iLyxSMHVJJswHgGOF6QcQqOZwaLO?usp=sharing).
 
 [2022/1/1] Support real-world video deblurring dataset: BSD.
 
@@ -45,6 +47,7 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
     - [ ] DMPHN [[Paper](https://arxiv.org/abs/1904.03468), [Project](https://github.com/HongguangZhang/DMPHN-cvpr19-master)]
     - [ ] DeblurGAN_V2 [[Paper](https://arxiv.org/abs/1908.03826), [Project](https://github.com/VITA-Group/DeblurGANv2)]
     - [ ] SAPHN [[Paper](https://arxiv.org/abs/2004.05343)]
+    - [x] Restormer [[Paper](https://arxiv.org/abs/2111.09881), [Project](https://github.com/swz30/Restormer)]
 
 * Video Deblurring
     - [x] DBN [[Paper](https://arxiv.org/abs/1611.08387), [Project](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/), [GitHub](https://github.com/shuochsu/DeepVideoDeblurring)]

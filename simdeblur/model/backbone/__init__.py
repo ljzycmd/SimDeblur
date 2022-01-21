@@ -4,6 +4,7 @@ from .ifirnn.ifirnn import IFIRNN
 from .strcnn.strcnn import STRCNN
 from .estrnn.estrnn import ESTRNN
 from .srn.srn import SRN
+from .restormer.Restormer import Restormer
 
 try:
     from .edvr.edvr import EDVR
