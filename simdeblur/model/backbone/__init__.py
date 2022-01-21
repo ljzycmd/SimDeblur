@@ -3,6 +3,7 @@ from .dblrnet.dblrnet import DBLRNet
 from .ifirnn.ifirnn import IFIRNN
 from .strcnn.strcnn import STRCNN
 from .estrnn.estrnn import ESTRNN
+from .srn.srn import SRN
 
 try:
     from .edvr.edvr import EDVR
