@@ -1,0 +1,57 @@
+name: "000_cdvdtsp_lr2e4_DVD_e651_B4G2_s"
+
+__base_cfg__: ./../base_dvd.yaml
+
+dataset:
+    train:
+        # dataloader per GPU
+        loader:
+            batch_size: 4
+            num_workers: 4
+
+meta_arch: "SingleScalePlainCNN"
+
+model:
+    name: "CDVD_TSP"
+    in_channels: 3
+    n_sequence: 5
+    out_channels: 3
+    n_resblock: 3
+    n_feat: 32
+    load_flow_net: True
+    load_recons_net: False
+    flow_pretrain_fn: ""
+    recons_pretrain_fn: ""
+    is_mask_filter: True
+
+loss:
+    criterion:
+    - name: CharbonnierLoss
+    
+    weights:
+    - 1.0
+
+schedule: 
+    epochs: 651
+    val_epochs: 5
+    
+    optimizer:
+        name: "Adam"
+        lr: 0.0004
+        betas: [0.9, 0.99]
+        weight_decay: 0
+        
+    lr_scheduler:
+        name: "MultiStepLR"
+        milestones: [500, 600, 620]
+        gamma: 0.1
+
+logging: 
+    period: 20
+
+ckpt:
+    period: 10
+
+
+work_dir: "./workdir/CDVD_TSP"
+resume_from: None
