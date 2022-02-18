@@ -1,0 +1,59 @@
+name: "000_PVDNet_lr2e4_GoPro_e1001_B8G1_s"
+
+__base_cfg__: ./../base_gopro.yaml
+
+dataset:
+    train:
+        sampling: n_n
+
+        use_gamma: False
+        num_frames: 6
+        # dataloader per GPU
+        loader:
+            batch_size: 1
+            num_workers: 1
+    
+    val:
+        sampling: n_n
+        overlapping: False
+
+        root_gt: "./datasets/GOPRO/test"
+        use_gamma: True
+        num_frames: 3
+
+meta_arch: PVDNetArch
+model:
+    name: PVDNet
+    large_model: True
+    bimnet_ckpt_path: ./workdir/pvdnet/ckpt/BIMNet.pytorch
+
+loss:
+    criterion:
+      - name: CharbonnierLoss 
+    
+    weights: [1.0]
+
+schedule: 
+    epochs: 1001
+    val_epochs: 10
+    
+    optimizer:
+        name: "Adam"
+        lr: 0.0002
+        betas: [0.9, 0.99]
+        weight_decay: 0
+        
+    lr_scheduler:
+        name: "MultiStepLR"
+        milestones: [700, 850, 920]
+        gamma: 0.1
+
+logging: 
+    period: 20
+
+ckpt:
+    period: 10
+
+
+work_dir: "./workdir/pvdnet"
+resume_from: None

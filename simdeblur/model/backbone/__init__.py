@@ -3,6 +3,9 @@ from .dblrnet.dblrnet import DBLRNet
 from .ifirnn.ifirnn import IFIRNN
 from .strcnn.strcnn import STRCNN
 from .estrnn.estrnn import ESTRNN
+from .cdvd_tsp.cdvd_tsp import CDVD_TSP
+from .pvdnet.pvdnet import PVDNet
+
 from .srn.srn import SRN
 from .restormer.Restormer import Restormer
 
