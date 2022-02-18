@@ -2,14 +2,14 @@
 
 SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and video deblurring based on PyTorch, which contains most deep-learning based state-of-the-art deblurring algorithms. It is easy to implement your own image or video deblurring and restoration algorithms. To the best of our knowledge, this is the first general framework for image/video delburring. 
 
-<div align=center> 
-<img src=./docs/reds_020.gif>
+<div align=center>
+    <img src=./docs/reds_020.gif>
 </div>
 
 <style>
-table {
-margin: auto;
-}
+    table {
+    margin: auto;
+    }
 </style>
 
 ### Major Features
@@ -18,16 +18,18 @@ margin: auto;
 
 The toolbox decomposes the deblurring framework into different components and one can easily construct a customized restoration framework by combining different modules.
 
-- State of the art
+- State-of-the-art
 
 The toolbox contains most deep-learning based state-of-the-art deblurring algorithms, including MSCNN, SRN, DeblurGAN, EDVR, *etc*.
 
-- Efficient
+- Efficient Training
 
-SimDeblur supports distributed data-parallel training. 
-
+SimDeblur supports distributed data-parallel training.
 
 ### New Features
+
+[2022/2/18] We add PVDNet model for video deblurring. Note that it requires the pretrained BIMNet for motion estimation. Thus please modify the CKPT path of BIMNet in the source codes.
+
 [2022/1/21] We add Restormer model. Note that it can only works on PyTorch1.8+.
 
 [2022/1/20] We transfer some checkpoints from the open-sourced repos into SimDeblur framework! You can find them [here](https://drive.google.com/drive/folders/1ukr-iLyxSMHVJJswHgGOF6QcQqOZwaLO?usp=sharing).
@@ -39,8 +41,9 @@ SimDeblur supports distributed data-parallel training.
 [2021/3/21] First release.
 
 ### Surpported Methods and Benchmarks
-We will gradually release the checkpoints of each model in [checkpoints.md](./docs/checkpoints.md). 
-* Single Image Deblurring 
+
+We will gradually release the checkpoints of each model in [checkpoints.md](./docs/checkpoints.md).
+* Single Image Deblurring
     - [x] MSCNN [[Paper](https://arxiv.org/abs/1612.02177), [Project](https://github.com/SeungjunNah/DeepDeblur-PyTorch)]
     - [x] SRN [[Paper](https://arxiv.org/abs/1802.01770), [Project](https://github.com/jiangsutx/SRN-Deblur)]
     - [ ] DeblurGAN [[Paper](https://arxiv.org/abs/1711.07064), [Project](https://github.com/KupynOrest/DeblurGAN)]
@@ -58,7 +61,7 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
     - [x] IFIRNN [[Paper](https://openaccess.thecvf.com/content_CVPR_2019/html/Nah_Recurrent_Neural_Networks_With_Intra-Frame_Iterations_for_Video_Deblurring_CVPR_2019_paper.html)]
     - [x] CDVD-TSP [[Paper](https://arxiv.org/abs/2004.02501), [Project](https://github.com/csbhr/CDVD-TSP)]
     - [x] ESTRNN [[Paper](https://www.ecva.net/papers/eccv_2020/papers_ECCV/html/5116_ECCV_2020_paper.php), [Project](https://github.com/zzh-tech/ESTRNN)]
-    - [ ] PVDNet [[Paper](https://arxiv.org/abs/2108.09982),[Project](https://github.com/codeslake/PVDNet)]
+    - [x] PVDNet [[Paper](https://arxiv.org/abs/2108.09982),[Project](https://github.com/codeslake/PVDNet)]
 
 * Benchmarks
     - [x] GoPro [[Paper](https://arxiv.org/abs/1612.02177), [Data](https://seungjunnah.github.io/Datasets/gopro)]
@@ -94,8 +97,10 @@ The design of SimDeblur consists of **FOUR** main parts as follows:
 
 Note that the dataset, model and scheduler can be constructed with config (EasyDict) with corresponding *build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}* functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics.
 
-## 1 Start with trainer
-You can construct a simple training process use the default trainer like following:
+## 1 Start with Trainer
+
+You can construct a simple training process using the default Trainer as following:
+
 ```python
 from simdeblur.config import build_config, merge_args
 from simdeblur.engine.parse_arguments import parse_arguments
@@ -111,23 +116,31 @@ cfg.args = args
 trainer = Trainer(cfg)
 trainer.train()
 ```
+
 Then start training with single GPU:
+
 ```bash
 CUDA_VISIBLE_DEVICES=0 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 1
 ```
-Multi GPU training:
+
+or multiple GPUs training:
+
 ```bash
 CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 4
 ```
-Util now, we only support single GPU Test and Validation:
+
+For the testing, SimDeblur only supports **single GPU testing** and Validation util now:
+
 ```bash
 CUDA_VISIBLE_DEVICES=0 python test.py ./config/dbn/dbn_dvd.yaml PATH_TO_CKPT
 ```
 
-## 2 Build individual module
-The SimDeblur also provides you to build individual module.
+## 2 Build specific module
+
+SimDeblur also provides you to build some specific modules, including dataset, model, loss, *etc.*
 
 **Build a dataset**:
+
 ```python
 from easydict import EasyDict as edict
 from simdeblur.dataset import build_dataset
@@ -160,6 +173,7 @@ print(dataset[0])
 ```
 
 **Build a model**:
+
 ```python
 from easydict import EasyDict as edict
 from simdeblur.model import build_backbone
@@ -178,7 +192,8 @@ out = model(x)
 ```
 
 **Build a loss**:
-```python 
+
+```python
 from easydict import EasyDict as edict
 from simdeblur.model import build_loss
 
@@ -193,18 +208,22 @@ y = torch.randn(2, 3, 256, 256)
 
 print(criterion(x, y))
 ```
-And the optimizer and lr_scheduler also can be created by the functions "build_optimizer" and "build_lr_scheduler" in the **simdeblur.scheduler**, *etc*. 
+
+And the optimizer and lr_scheduler also can be created by the functions "build_optimizer" and "build_lr_scheduler" in the **simdeblur.scheduler**, *etc*.
 
 ### Dataset Description
-Until now, SimDeblur supports the most popular image and video deblurring datasets, including GOPRO, DVD, and REDS. 
 
-Click [here](./simdeblur/dataset/README.md) for more information. 
+SimDeblur supports the most popular image and video deblurring datasets, including GOPRO, DVD, REDS, BSD. We design different data reading strategies that can meet the input requirements of different image and video deblurring models.
+
+You can click [here](./simdeblur/dataset/README.md) for more information about the design of the dataset.
 
 ### Acknowledgment
 
-[1] facebookresearch. detectron2. https://github.com/facebookresearch/detectron2
+The design spirit of SimDeblur comes most from Detectron2 [1], we highly thank for this amazing open-sourced toolbox. We also thank for the paper and code collections in Awesome-Deblurring repositry [2].
 
-[2] subeeshvasu. Awesome-Deblurring. https://github.com/subeeshvasu/Awesome-Deblurring
+[1] facebookresearch. detectron2. [https://github.com/facebookresearch/detectron2](https://github.com/facebookresearch/detectron2)
+
+[2] subeeshvasu. Awesome-Deblurring. [https://github.com/subeeshvasu/Awesome-Deblurring](https://github.com/subeeshvasu/Awesome-Deblurring)
 
 ### Citations
 
@@ -218,4 +237,5 @@ If SimDeblur helps your research or work, please consider citing SimDeblur.
   year         = {2021}
 }
 ```
-If you have any questions, please feel free to [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao [AT] gmail.com`, and I will try to solve your problem.
+
+Last, if you have any questions about SimDeblur, please feel free to [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao [AT] gmail.com`, and I will try to solve your problem.
