@@ -28,6 +28,8 @@ SimDeblur supports distributed data-parallel training.
 
 ### New Features
 
+[2022/3/8] We further provide a image deblurring-based inference code, please refer to **Usage** section for the using.
+
 [2022/2/18] We add PVDNet model for video deblurring. Note that it requires the pretrained BIMNet for motion estimation. Thus please modify the CKPT path of BIMNet in the source codes.
 
 [2022/1/21] We add Restormer model. Note that it can only works on PyTorch1.8+.
@@ -96,6 +98,16 @@ The design of SimDeblur consists of **FOUR** main parts as follows:
 |Dataset-specific classes | The backbone, losses, and meta_archs | Opeimizer, LR scheduler | **Trainer**, and some hook function during model training process|
 
 Note that the dataset, model and scheduler can be constructed with config (EasyDict) with corresponding *build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}* functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics.
+
+## 0 Quick Inference
+
+We provide a image deblurring inference code, and you can run it to deblur a blurry image as follows:
+
+```bash
+python inference_image.py CONFIG_PATH  CKPT_PATH  --img=BLUR_IMAGE_PATH  --save_path=DEBLURRED_OUT_PATH
+```
+
+the deblurred latent image will be stored at "./inference_resutls" in default.
 
 ## 1 Start with Trainer
 
