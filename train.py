@@ -15,13 +15,15 @@ from simdeblur.engine.parse_arguments import parse_arguments
 from simdeblur.engine.trainer import Trainer
 from simdeblur.config import save_configs_to_yaml
 
+from easydict import EasyDict as edict
+
 
 def main():
     args = parse_arguments()
 
     cfg = build_config(args.config_file)
     cfg = merge_args(cfg, args)
-    cfg.args = args
+    cfg.args = edict(vars(args))
     cfg.experiment_time = time.strftime("%Y%m%d_%H%M%S")
     if args.local_rank == 0:
         save_path = os.path.join(cfg.work_dir, cfg.name, cfg.experiment_time)

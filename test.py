@@ -11,6 +11,7 @@ import argparse
 
 from simdeblur.config import build_config
 from simdeblur.engine.trainer import Trainer
+from easydict import EasyDict as edict
 
 
 def parse_arguments():
@@ -30,7 +31,7 @@ def parse_arguments():
 def main():
     args = parse_arguments()
     cfg = build_config(args.config_file)
-    cfg.args = args
+    cfg.args = edict(vars(args))
     Trainer.test(cfg)
 
 

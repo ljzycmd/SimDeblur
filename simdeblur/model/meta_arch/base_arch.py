@@ -74,6 +74,8 @@ class BaseArch():
         TODO: re-write these by dist_utils.py
         """
         model = build_backbone(cfg.model)
+        if not cfg.args.get("gpus"):
+            return model
         if cfg.args.gpus > 1:
             rank = cfg.args.local_rank
             model = nn.parallel.DistributedDataParallel(
