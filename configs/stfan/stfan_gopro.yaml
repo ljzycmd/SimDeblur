@@ -1,4 +1,4 @@
-name: "000_PVDNet_lr2e4_GoPro_e1001_B8G1_s"
+name: "000_STFAN_seq20_lr2e4_GOPRO_e1001_B1G2_s"
 
 __base_cfg__: ./../base_gopro.yaml
 
@@ -7,7 +7,7 @@ dataset:
         sampling: n_n
 
         use_gamma: False
-        num_frames: 13
+        num_frames: 20
         # dataloader per GPU
         loader:
             batch_size: 1
@@ -21,17 +21,19 @@ dataset:
         use_gamma: True
         num_frames: 3
 
-meta_arch: PVDNetArch
+meta_arch: STFANRNNArch
 model:
-    name: PVDNet
-    large_model: True
-    bimnet_ckpt_path: ./workdir/pvdnet/ckpt/BIMNet.pytorch
+    name: STFANCell
 
 loss:
     criterion:
-      - name: CharbonnierLoss 
+      - name: MSELoss
+      - name: PerceptualLossVGG19
+        reduction: mean
     
-    weights: [1.0]
+    weights:
+    - 1.0
+    - 0.01
 
 schedule: 
     epochs: 1001
@@ -55,5 +57,5 @@ ckpt:
     period: 10
 
 
-work_dir: "./workdir/pvdnet"
+work_dir: "./workdir/stfan"
 resume_from: None

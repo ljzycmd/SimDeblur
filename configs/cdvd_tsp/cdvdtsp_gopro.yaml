@@ -1,6 +1,6 @@
-name: "000_cdvdtsp_lr2e4_DVD_e651_B4G2_s"
+name: 000_CDVDTSP_GOPRO_lr1e4_e601_B4G4_s"
 
-__base_cfg__: ./../base_dvd.yaml
+__base_cfg__: ./../base_gopro.yaml
 
 dataset:
     train:
@@ -10,7 +10,6 @@ dataset:
             num_workers: 4
 
 meta_arch: "SingleScalePlainCNN"
-
 model:
     name: "CDVD_TSP"
     in_channels: 3
@@ -24,26 +23,28 @@ model:
     recons_pretrain_fn: ""
     is_mask_filter: True
 
-loss:
+loss: 
     criterion:
-    - name: CharbonnierLoss
+    - name: HEM
+    hard_thre_p: 0.5
+    random_thre_p: 0.1
     
-    weights:
+    weights: 
     - 1.0
 
 schedule: 
-    epochs: 651
-    val_epochs: 5
+    epochs: 601
+    val_epochs: 2
     
     optimizer:
         name: "Adam"
-        lr: 0.0001
-        betas: [0.9, 0.99]
+        lr: !!float 1e-4
+        betas: [0.9, 0.999]
         weight_decay: 0
         
     lr_scheduler:
         name: "MultiStepLR"
-        milestones: [500, 600, 620]
+        milestones: [200, 400]
         gamma: 0.1
 
 logging: 
@@ -53,5 +54,6 @@ ckpt:
     period: 10
 
 
-work_dir: "./workdir/CDVD_TSP"
+
+work_dir: ./workdir/cdvdtsp
 resume_from: None
