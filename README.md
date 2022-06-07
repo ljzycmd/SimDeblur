@@ -74,7 +74,8 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
 ### Dependencies and Installation
 * Python 3 (Conda is recommended)
 * Pytorch 1.5.1 (with GPU)
-* CUDA 10.1+ with NVCC
+* CUDA 10.1+ with NVCC (for code compilation in some models)
+
 1. Clone the repositry or download the zip file
    ```
     git clone https://github.com/ljzycmd/SimDeblur.git
@@ -114,6 +115,7 @@ the deblurred latent image will be stored at "./inference_resutls" in default.
 You can construct a simple training process using the default Trainer as following:
 
 ```python
+from easydict import EasyDict as edict
 from simdeblur.config import build_config, merge_args
 from simdeblur.engine.parse_arguments import parse_arguments
 from simdeblur.engine.trainer import Trainer
@@ -123,7 +125,7 @@ args = parse_arguments()
 
 cfg = build_config(args.config_file)
 cfg = merge_args(cfg, args)
-cfg.args = args
+cfg.args = edict(vars(args))
 
 trainer = Trainer(cfg)
 trainer.train()
@@ -228,6 +230,8 @@ And the optimizer and lr_scheduler also can be created by the functions "build_o
 SimDeblur supports the most popular image and video deblurring datasets, including GOPRO, DVD, REDS, BSD. We design different data reading strategies that can meet the input requirements of different image and video deblurring models.
 
 You can click [here](./simdeblur/dataset/README.md) for more information about the design of the dataset.
+
+**To start, note that you should change the path of the dataset in related config files.**
 
 ### Acknowledgment
 
