@@ -6,11 +6,6 @@ SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and 
     <img src=./docs/reds_020.gif>
 </div>
 
-<style>
-    table {
-    margin: auto;
-    }
-</style>
 
 ### Major Features
 
@@ -96,9 +91,9 @@ You can open the [Colab Notebook](https://colab.research.google.com/drive/13dNBB
 The design of SimDeblur consists of **FOUR** main parts as follows:
 | Dataset | Model  | Scheduler | Engine |
 |:-------:|:------:|:---------:|:------:|
-|Dataset-specific classes | The backbone, losses, and meta_archs | Opeimizer, LR scheduler | **Trainer**, and some hook function during model training process|
+|Dataset-specific classes | The backbone, losses, and meta_archs | Opeimizer, LR scheduler | **Trainer**, and some hook functions during model training |
 
-Note that the dataset, model and scheduler can be constructed with config (EasyDict) with corresponding *build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}* functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics.
+Note that the dataset, model and scheduler can be constructed with config (EasyDict) with corresponding `build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}` functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics.
 
 ## 0 Quick Inference
 
@@ -108,11 +103,11 @@ We provide a image deblurring inference code, and you can run it to deblur a blu
 python inference_image.py CONFIG_PATH  CKPT_PATH  --img=BLUR_IMAGE_PATH  --save_path=DEBLURRED_OUT_PATH
 ```
 
-the deblurred latent image will be stored at "./inference_resutls" in default.
+the deblurred latent image will be stored at `./inference_resutls` in default.
 
 ## 1 Start with Trainer
 
-You can construct a simple training process using the default Trainer as following:
+You can construct a simple training process using the default Trainer as following (refer to the `train.py` for more details):
 
 ```python
 from easydict import EasyDict as edict
@@ -131,7 +126,7 @@ trainer = Trainer(cfg)
 trainer.train()
 ```
 
-Then start training with single GPU:
+Start training with single GPU:
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 1
@@ -223,7 +218,7 @@ y = torch.randn(2, 3, 256, 256)
 print(criterion(x, y))
 ```
 
-And the optimizer and lr_scheduler also can be created by the functions "build_optimizer" and "build_lr_scheduler" in the **simdeblur.scheduler**, *etc*.
+And the optimizer and lr_scheduler also can be created by the functions "build_optimizer" and "build_lr_scheduler" in the `simdeblur.scheduler`, *etc*.
 
 ### Dataset Description
 
