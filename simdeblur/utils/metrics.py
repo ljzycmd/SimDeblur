@@ -26,6 +26,8 @@ def calculate_ssim(img1, img2):
 
     img1 = img1.clamp(0, 1)
     img2 = img2.clamp(0, 1)
+
+    CHANNEL = img1.shape[1]
     
     C1 = (0.01 * 1)**2
     C2 = (0.03 * 1)**2
@@ -35,14 +37,14 @@ def calculate_ssim(img1, img2):
     kernel = gaussian(11, 1.5).to(img1).unsqueeze(1)
     window = kernel.mm(kernel.t()).float().expand(3, 1, 11, 11)
 
-    mu1 = F.conv2d(img1, window, groups = 3)  # valid
-    mu2 = F.conv1d(img2, window, groups = 3)
+    mu1 = F.conv2d(img1, window, groups = CHANNEL)  # valid
+    mu2 = F.conv1d(img2, window, groups = CHANNEL)
     mu1_sq = mu1**2
     mu2_sq = mu2**2
     mu1_mu2 = mu1 * mu2
-    sigma1_sq = F.conv2d(img1**2, window, groups=3) - mu1_sq
-    sigma2_sq = F.conv2d(img2**2, window, groups=3) - mu2_sq
-    sigma12 = F.conv2d(img1 * img2, window, groups=3) - mu1_mu2
+    sigma1_sq = F.conv2d(img1**2, window, groups = CHANNEL) - mu1_sq
+    sigma2_sq = F.conv2d(img2**2, window, groups = CHANNEL) - mu2_sq
+    sigma12 = F.conv2d(img1 * img2, window, groups = CHANNEL) - mu1_mu2
 
     # mu1 = F.conv2d(img1, window, padding = 11//2, groups = 3)  # same
     # mu2 = F.conv1d(img2, window, padding = 11//2, groups = 3)
@@ -124,23 +126,6 @@ def ssim2(img1, img2, window_size = 11, size_average = True):
     window = window.type_as(img1)
     
     return _ssim(img1, img2, window, window_size, channel, size_average)
-
-
-# class MetriCalculator:
-#     def __init__(self):
-#         print("calculating the psnr and ssim metric.")
-    
-#     def after_iter(self, inputs, outputs):
-#         # calculate metrics
-#         # flatten the gt_frames(b, n, c, h, w) to 4 dims tensor (b, n, c, h, w)
-#         psnr = calculate_psnr(inputs, outputs)
-#         ssim = calculate_ssim(inputs, outputs)
-        
-#         ret = OrderedDict()
-#         ret["psnr"] = psnr.item()
-#         ret["ssim"] = ssim.item()
-
-#         return ret
 
 
 if __name__ == "__main__":
