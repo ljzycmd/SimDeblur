@@ -107,7 +107,7 @@ the deblurred latent image will be stored at `./inference_resutls` in default.
 
 ## 1 Start with Trainer
 
-You can construct a simple training process using the default Trainer as following (refer to the `train.py` for more details):
+You can construct a simple training process using the default Trainer as follows (refer to the `train.py` for more details):
 
 ```python
 from easydict import EasyDict as edict
