@@ -2,7 +2,7 @@
 * fileName: trainer.py
 * desc: The trainer class of SimDeblur framework, which builds the training loop automatically.
 * author: mingdeng_cao
-* lsat revised: 2021.6.7
+* lsat revised: 2022.9.17
 * logs:
     10.15, Update the Trainer to adapt different meta ARCHs.
     7.14, Update the testing process.
@@ -33,16 +33,16 @@ from simdeblur.config import save_configs_to_yaml
 from simdeblur.engine import hooks
 
 
-# logging.basicConfig(
-#     format='%(asctime)s - %(levelname)s - SimDeblur: %(message)s', level=logging.INFO)
-# logging.info("******* A simple deblurring framework ********")
-
-
 class Trainer:
     def __init__(self, cfg):
         """
         Args
-            cfg(edict): the config file, which contains arguments form comand line
+            cfg(edict): the whole config file
+            cfg.model: the model configurations
+            cfg.dataset: the dataset configurations
+            cfg.loss: the loss configuration
+            cfg.schedule: the training configuration
+            cfg.args: the arguments from the command line
         """
         self.cfg = copy.deepcopy(cfg)
         # initialize the distributed training
@@ -61,10 +61,10 @@ class Trainer:
             "cuda" if torch.cuda.is_available() else "cpu")
         # self.device = torch.device("cpu")
 
-        # construct the modules
+        # construct the training architecture
         self.arch = build_meta_arch(self.cfg)
 
-        # construct data
+        # construct training datasets
         self.train_dataloader, self.train_sampler = self.build_dataloder(
             cfg, mode="train")
         self.val_datalocaer, _ = self.build_dataloder(cfg, mode="val")
@@ -210,13 +210,14 @@ class Trainer:
         return ret
 
     def resume_or_load_ckpt(self, ckpt=None, ckpt_path=None):
+        logger = logging.getLogger("simdeblur")
         try:
             kwargs = {'map_location': lambda storage,
                       loc: storage.cuda(self.cfg.args.local_rank)}
             ckpt = torch.load(ckpt_path, **kwargs)
 
             # initial mode: load the ckpt as the initialized weights
-            logging.info("Inittial mode: %s, checkpoint loaded from %s." % (
+            logger.info("Inittial mode: %s, checkpoint loaded from %s." % (
                 self.cfg.get("init_mode"), self.cfg.resume_from))
             if not self.cfg.get("init_mode"):
                 # load the ckpt into arch.model
@@ -244,8 +245,8 @@ class Trainer:
                 self.arch.load_ckpt(ckpt, strict=True)
 
         except Exception as e:
-            logging.warning(e)
-            logging.warning("Checkpoint loaded failed, cannot find ckpt file from %s." % (
+            logger.warning(e)
+            logger.warning("Checkpoint loaded failed, cannot find ckpt file from %s." % (
                 self.cfg.resume_from))
 
     def save_ckpt(self, out_dir=None, ckpt_name="epoch_{}.pth", dence_saving=False):
@@ -263,8 +264,7 @@ class Trainer:
 
         # construct checkpoint
         ckpt = {
-            # TODO change the key mata to meta...
-            "mata": meta_info,
+            "meta": meta_info,
             "optimizer":
                 {k: v.state_dict() for k, v, in self.optimizer.items()} if isinstance(
                     self.optimizer, dict) else self.optimizer.state_dict(),
@@ -446,6 +446,15 @@ class Trainer:
                                 batch_data["gt_names"][n_idx][b_idx],
                                 psnr_dict[frame_name],
                                 ssim_dict[frame_name]))
-        print("mean PSNR: {:.2f}  mean SSIM: {:.4f} ".format(
-            sum(psnr_dict.values()) / len(psnr_dict),
-            sum(ssim_dict.values()) / len(ssim_dict)))
+        mean_psnr = sum(psnr_dict.values()) / len(psnr_dict)
+        mean_ssim = sum(ssim_dict.values()) / len(ssim_dict)
+        with open(os.path.abspath(os.path.join(current_work_dir, "test_log.txt")), "a") as f:
+            f.write("mean_psnr: {}  mean_ssim: {}".format(mean_psnr, mean_ssim))
+
+        print("Memory: ", torch.cuda.memory_allocated())
+        print("mean PSNR: {:.2f}  mean SSIM: {:.4f}  total time: {:.2f}s  average time: {:.4f}s FPS: {:.2f}".format(
+            mean_psnr,
+            mean_ssim,
+            total_time,
+            total_time / len(test_dataloader),
+            len(test_dataloader.dataset) / total_time))
