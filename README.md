@@ -93,7 +93,7 @@ The design of SimDeblur consists of **FOUR** main parts as follows:
 |:-------:|:------:|:---------:|:------:|
 |Dataset-specific classes | The backbone, losses, and meta_archs | Opeimizer, LR scheduler | **Trainer**, and some hook functions during model training |
 
-Note that the dataset, model and scheduler can be constructed with config (EasyDict) with corresponding `build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}` functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics.
+Note that the dataset, model and scheduler can be constructed with config (`EasyDict`) with corresponding `build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}` functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics.
 
 ## 0 Quick Inference
 
@@ -129,19 +129,19 @@ trainer.train()
 Start training with single GPU:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 1
+CUDA_VISIBLE_DEVICES=0 bash ./tools/train.sh ./configs/dbn/dbn_dvd.yaml 1
 ```
 
 or multiple GPUs training:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/train.sh ./config/dbn/dbn_dvd.yaml 4
+CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/train.sh ./configs/dbn/dbn_dvd.yaml 4
 ```
 
-For the testing, SimDeblur only supports **single GPU testing** and Validation util now:
+For the testing, SimDeblur only supports **single GPU testing** and validation util now:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python test.py ./config/dbn/dbn_dvd.yaml PATH_TO_CKPT
+CUDA_VISIBLE_DEVICES=0 python test.py ./configs/dbn/dbn_dvd.yaml PATH_TO_CKPT
 ```
 
 ## 2 Build specific module
@@ -218,7 +218,7 @@ y = torch.randn(2, 3, 256, 256)
 print(criterion(x, y))
 ```
 
-And the optimizer and lr_scheduler also can be created by the functions "build_optimizer" and "build_lr_scheduler" in the `simdeblur.scheduler`, *etc*.
+And the optimizer and lr_scheduler also can be created by the functions `build_optimizer` and `build_lr_scheduler` in the `simdeblur.scheduler`, *etc*.
 
 ### Dataset Description
 
