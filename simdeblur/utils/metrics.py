@@ -38,7 +38,7 @@ def calculate_ssim(img1, img2):
     window = kernel.mm(kernel.t()).float().expand(3, 1, 11, 11)
 
     mu1 = F.conv2d(img1, window, groups = CHANNEL)  # valid
-    mu2 = F.conv1d(img2, window, groups = CHANNEL)
+    mu2 = F.conv2d(img2, window, groups = CHANNEL)
     mu1_sq = mu1**2
     mu2_sq = mu2**2
     mu1_mu2 = mu1 * mu2
