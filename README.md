@@ -1,6 +1,6 @@
 # <p align=center>`SimDeblur`</p>
 
-SimDeblur (**Sim**ple **Deblur**ring) is an open source framework for image and video deblurring based on PyTorch, which contains most deep-learning based state-of-the-art deblurring algorithms. It is easy to implement your own image or video deblurring and restoration algorithms. To the best of our knowledge, this is the first general framework for image/video delburring. 
+SimDeblur (**Sim**ple **Deblur**ring) is an open-sourced unifying training and testing framework for image and video deblurring based on PyTorch. It supports most deep-learning based state-of-the-art deblurring algorithms, and provides easy way to implement your own image or video deblurring and restoration algorithms.
 
 <div align=center>
     <img src=./docs/reds_020.gif>
@@ -22,6 +22,8 @@ The toolbox contains most deep-learning based state-of-the-art deblurring algori
 SimDeblur supports distributed data-parallel training.
 
 ### New Features
+
+[2022/11/12] SimDeblur supports [MIMOUnet](https://github.com/chosj95/MIMO-UNet) model.
 
 [2022/3/8] We further provide a image deblurring-based inference code, please refer to **Usage** section for the using.
 
@@ -47,6 +49,7 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
     - [ ] DMPHN [[Paper](https://arxiv.org/abs/1904.03468), [Project](https://github.com/HongguangZhang/DMPHN-cvpr19-master)]
     - [ ] DeblurGAN_V2 [[Paper](https://arxiv.org/abs/1908.03826), [Project](https://github.com/VITA-Group/DeblurGANv2)]
     - [ ] SAPHN [[Paper](https://arxiv.org/abs/2004.05343)]
+    - [x] MIMOUNet [[Paper](https://arxiv.org/abs/2108.05054), [Project](https://github.com/chosj95/MIMO-UNet)]
     - [x] Restormer [[Paper](https://arxiv.org/abs/2111.09881), [Project](https://github.com/swz30/Restormer)]
 
 * Video Deblurring
@@ -68,7 +71,7 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
 
 ### Dependencies and Installation
 * Python 3 (Conda is recommended)
-* Pytorch 1.5.1 (with GPU)
+* Pytorch 1.5.1 (with GPU, note some methods require higher version)
 * CUDA 10.1+ with NVCC (for code compilation in some models)
 
 1. Clone the repositry or download the zip file
@@ -82,7 +85,7 @@ We will gradually release the checkpoints of each model in [checkpoints.md](./do
    conda activate simdeblur   
    # install the packages
    cd SimDeblur
-   bash Install.sh
+   bash Install.sh  # some problems may occur due to wrong NVCC configurations for CUDA codes compiling
    ```
 
 # Usage
@@ -249,4 +252,4 @@ If SimDeblur helps your research or work, please consider citing SimDeblur.
 }
 ```
 
-Last, if you have any questions about SimDeblur, please feel free to [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao [AT] gmail.com`, and I will try to solve your problem.
+Last, if you have any questions about SimDeblur, please feel free to [open an new issue](https://github.com/ljzycmd/SimDeblur/issues/new) or contact me at `mingdengcao [AT] gmail.com`, and I will try to solve your problem. Meanwhile, any contribution to this Repo is highly welcome. Let's make SimDeblur more powerful!
