@@ -1,0 +1,54 @@
+name: 000_MIMOUNet_lr1e4_GoPro_e3001_B4G1_s
+
+__base_cfg__: ./../base_gopro.yaml
+
+dataset:
+    train:
+        sampling: n_n
+
+        num_frames: 1
+        # dataloader per GPU
+        loader:
+            batch_size: 4
+            num_workers: 4
+    
+    val:
+        sampling: n_n
+        num_frames: 1
+
+meta_arch: MIMOUnetArch
+model:
+    name: MIMOUNet
+    num_res: 8
+
+loss:
+    criterion:
+      - name: L1Loss
+    
+    weights: [1.0]
+
+schedule: 
+    epochs: 3001
+    val_epochs: 50
+    
+    optimizer:
+        name: "Adam"
+        lr: 0.0001
+        betas: [0.9, 0.99]
+        weight_decay: 0
+        
+    lr_scheduler:
+        name: MultiStepLR
+        milestones: [500, 1000, 1500, 2000, 2500]
+        gamma: 0.5
+
+
+logging: 
+    period: 20
+
+ckpt:
+    period: 10
+
+
+work_dir: ./workdir/image_deblurring/mimounet
+resume_from: None
