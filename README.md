@@ -23,6 +23,8 @@ SimDeblur supports distributed data-parallel training.
 
 ### New Features
 
+[2022/12/11] SimDeblur supports [NAFNet](https://arxiv.org/abs/2204.04676) ([ckpt](https://drive.google.com/drive/folders/1ukr-iLyxSMHVJJswHgGOF6QcQqOZwaLO?usp=share_link)) model for image deblurring.
+
 [2022/11/12] SimDeblur supports [MIMOUnet](https://github.com/chosj95/MIMO-UNet) model.
 
 [2022/3/8] We further provide a image deblurring-based inference code, please refer to **Usage** section for the using.
@@ -42,36 +44,43 @@ SimDeblur supports distributed data-parallel training.
 ### Surpported Methods and Benchmarks
 
 We will gradually release the checkpoints of each model in [checkpoints.md](./docs/checkpoints.md).
+
 * Single Image Deblurring
-    - [x] MSCNN [[Paper](https://arxiv.org/abs/1612.02177), [Project](https://github.com/SeungjunNah/DeepDeblur-PyTorch)]
-    - [x] SRN [[Paper](https://arxiv.org/abs/1802.01770), [Project](https://github.com/jiangsutx/SRN-Deblur)]
-    - [ ] DeblurGAN [[Paper](https://arxiv.org/abs/1711.07064), [Project](https://github.com/KupynOrest/DeblurGAN)]
-    - [ ] DMPHN [[Paper](https://arxiv.org/abs/1904.03468), [Project](https://github.com/HongguangZhang/DMPHN-cvpr19-master)]
-    - [ ] DeblurGAN_V2 [[Paper](https://arxiv.org/abs/1908.03826), [Project](https://github.com/VITA-Group/DeblurGANv2)]
-    - [ ] SAPHN [[Paper](https://arxiv.org/abs/2004.05343)]
-    - [x] MIMOUNet [[Paper](https://arxiv.org/abs/2108.05054), [Project](https://github.com/chosj95/MIMO-UNet)]
-    - [x] Restormer [[Paper](https://arxiv.org/abs/2111.09881), [Project](https://github.com/swz30/Restormer)]
+
+  - [x] MSCNN [[Paper](https://arxiv.org/abs/1612.02177), [Project](https://github.com/SeungjunNah/DeepDeblur-PyTorch)]
+  - [x] SRN [[Paper](https://arxiv.org/abs/1802.01770), [Project](https://github.com/jiangsutx/SRN-Deblur)]
+  - [ ] DeblurGAN [[Paper](https://arxiv.org/abs/1711.07064), [Project](https://github.com/KupynOrest/DeblurGAN)]
+  - [ ] DMPHN [[Paper](https://arxiv.org/abs/1904.03468), [Project](https://github.com/HongguangZhang/DMPHN-cvpr19-master)]
+  - [ ] DeblurGAN_V2 [[Paper](https://arxiv.org/abs/1908.03826), [Project](https://github.com/VITA-Group/DeblurGANv2)]
+  - [ ] SAPHN [[Paper](https://arxiv.org/abs/2004.05343)]
+  - [x] MIMOUNet [[Paper](https://arxiv.org/abs/2108.05054), [Project](https://github.com/chosj95/MIMO-UNet)]
+  - [x] Restormer [[Paper](https://arxiv.org/abs/2111.09881), [Project](https://github.com/swz30/Restormer)]
+  - [x] NAFNet [[Paper](https://arxiv.org/abs/2204.04676), [Project](https://github.com/megvii-research/NAFNet)]
 
 * Video Deblurring
-    - [x] DBN [[Paper](https://arxiv.org/abs/1611.08387), [Project](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/), [GitHub](https://github.com/shuochsu/DeepVideoDeblurring)]
-    - [x] STRCNN [[paper](https://arxiv.org/abs/1704.03285)]
-    - [x] DBLRNet [[Paper](https://arxiv.org/abs/1804.00533)]
-    - [x] EDVR [[Paper](https://arxiv.org/abs/1905.02716), [Project](https://github.com/xinntao/EDVR)]
-    - [x] STFAN [[Paper](https://arxiv.org/abs/1904.12257), [Project](https://shangchenzhou.com/projects/stfan/)]
-    - [x] IFIRNN [[Paper](https://openaccess.thecvf.com/content_CVPR_2019/html/Nah_Recurrent_Neural_Networks_With_Intra-Frame_Iterations_for_Video_Deblurring_CVPR_2019_paper.html)]
-    - [x] CDVD-TSP [[Paper](https://arxiv.org/abs/2004.02501), [Project](https://github.com/csbhr/CDVD-TSP)]
-    - [x] ESTRNN [[Paper](https://www.ecva.net/papers/eccv_2020/papers_ECCV/html/5116_ECCV_2020_paper.php), [Project](https://github.com/zzh-tech/ESTRNN)]
-    - [x] PVDNet [[Paper](https://arxiv.org/abs/2108.09982),[Project](https://github.com/codeslake/PVDNet)]
+
+  - [x] DBN [[Paper](https://arxiv.org/abs/1611.08387), [Project](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/), [GitHub](https://github.com/shuochsu/DeepVideoDeblurring)]
+  - [x] STRCNN [[paper](https://arxiv.org/abs/1704.03285)]
+  - [x] DBLRNet [[Paper](https://arxiv.org/abs/1804.00533)]
+  - [x] EDVR [[Paper](https://arxiv.org/abs/1905.02716), [Project](https://github.com/xinntao/EDVR)]
+  - [x] STFAN [[Paper](https://arxiv.org/abs/1904.12257), [Project](https://shangchenzhou.com/projects/stfan/)]
+  - [x] IFIRNN [[Paper](https://openaccess.thecvf.com/content_CVPR_2019/html/Nah_Recurrent_Neural_Networks_With_Intra-Frame_Iterations_for_Video_Deblurring_CVPR_2019_paper.html)]
+  - [x] CDVD-TSP [[Paper](https://arxiv.org/abs/2004.02501), [Project](https://github.com/csbhr/CDVD-TSP)]
+  - [x] ESTRNN [[Paper](https://www.ecva.net/papers/eccv_2020/papers_ECCV/html/5116_ECCV_2020_paper.php), [Project](https://github.com/zzh-tech/ESTRNN)]
+  - [x] PVDNet [[Paper](https://arxiv.org/abs/2108.09982),[Project](https://github.com/codeslake/PVDNet)]
 
 * Benchmarks
-    - [x] GoPro [[Paper](https://arxiv.org/abs/1612.02177), [Data](https://seungjunnah.github.io/Datasets/gopro)]
-    - [x] DVD [[Paper](https://arxiv.org/abs/1611.08387), [Data](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/)]
-    - [x] REDS [[Paper](https://openaccess.thecvf.com/content_CVPRW_2019/html/NTIRE/Nah_NTIRE_2019_Challenge_on_Video_Deblurring_and_Super-Resolution_Dataset_and_CVPRW_2019_paper.html), [Data](https://seungjunnah.github.io/Datasets/reds)]
-    - [x] BSD [[Paper](https://arxiv.org/abs/2106.16028), [Project](https://github.com/zzh-tech/ESTRNN), [Data](https://drive.google.com/file/d/19cel6QgofsWviRbA5IPMEv_hDbZ30vwH/view)]
+  - [x] GoPro [[Paper](https://arxiv.org/abs/1612.02177), [Data](https://seungjunnah.github.io/Datasets/gopro)]
+  - [x] DVD [[Paper](https://arxiv.org/abs/1611.08387), [Data](http://www.cs.ubc.ca/labs/imager/tr/2017/DeepVideoDeblurring/)]
+  - [x] REDS [[Paper](https://openaccess.thecvf.com/content_CVPRW_2019/html/NTIRE/Nah_NTIRE_2019_Challenge_on_Video_Deblurring_and_Super-Resolution_Dataset_and_CVPRW_2019_paper.html), [Data](https://seungjunnah.github.io/Datasets/reds)]
+  - [x] BSD [[Paper](https://arxiv.org/abs/2106.16028), [Project](https://github.com/zzh-tech/ESTRNN), [Data](https://drive.google.com/file/d/19cel6QgofsWviRbA5IPMEv_hDbZ30vwH/view)]
 
 ### Dependencies and Installation
+
 * Python 3 (Conda is recommended)
-* Pytorch 1.5.1 (with GPU, note some methods require higher version)
+
+* Pytorch 1.5+ (with GPU, note some methods require higher version)
+
 * CUDA 10.1+ with NVCC (for code compilation in some models)
 
 1. Clone the repositry or download the zip file
@@ -94,9 +103,9 @@ You can open the [Colab Notebook](https://colab.research.google.com/drive/13dNBB
 The design of SimDeblur consists of **FOUR** main parts as follows:
 | Dataset | Model  | Scheduler | Engine |
 |:-------:|:------:|:---------:|:------:|
-|Dataset-specific classes | The backbone, losses, and meta_archs | Opeimizer, LR scheduler | **Trainer**, and some hook functions during model training |
+|Dataset-specific classes | The backbone, losses, and meta_archs. Backbone is the main network, and the meta_arch is a class for model training | Opeimizer, LR scheduler | **Trainer**, and some hook functions during model training |
 
-Note that the dataset, model and scheduler can be constructed with config (`EasyDict`) with corresponding `build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}` functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics.
+Note that the dataset, model and scheduler can be constructed with config (`EasyDict`) with corresponding `build_{dataset, backbone, meta_arch, scheduler, optimizer, etc.}` functions. The Trainer class automatically construct all reqiured elements for model training in a general way. This means that if you want to do some specific modeling training, you may modify the training logics in corresponding `meta_arch` class.
 
 ## 0 Quick Inference
 
