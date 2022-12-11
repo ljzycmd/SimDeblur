@@ -9,6 +9,7 @@ from .pvdnet.pvdnet import PVDNet
 from .srn.srn import SRN
 from .restormer.Restormer import Restormer
 from .mimounet.MIMOUNet import MIMOUNet
+from .nafnet.nafnet import NAFNet
 
 try:
     from .edvr.edvr import EDVR
