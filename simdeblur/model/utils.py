@@ -3,13 +3,17 @@
 * desc: Some model util functions.
 * author: mingdeng_cao
 * date: 2021/11/07 21:43
-* last revised: None
+* last revised:
+*     2023/08/14: fix the bug of printing model params.
 ************************************************ """
 
 
 import torch.nn as nn
 import numpy as np
 import logging
+
+loger = logging.getLogger(name="simdeblur")
+
 
 def print_model_params(model: nn.Module):
     total_params = 0
@@ -28,7 +32,6 @@ def print_model_params(model: nn.Module):
     trainable_params /= 1e6
     non_trainable_params /= 1e6
 
-    loger = logging.getLogger(name="SimDeblur")
     loger.info(f'Total params: {total_params} M.')
     loger.info(f'Trainable params: {trainable_params} M.')
     loger.info(f'Non-trainable params: {non_trainable_params} M.')
