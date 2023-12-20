@@ -1,0 +1,58 @@
+name: "000_Restormer_DVD_lr2e4_e1001_B8G1_s"
+
+__base_cfg__: ./../base_dvd.yaml
+
+dataset:
+    train:
+        sampling: n_n
+
+        num_frames: 1
+        # dataloader per GPU
+        loader:
+            batch_size: 1
+            num_workers: 1
+    
+    val:
+        sampling: n_n
+        num_frames: 1
+
+meta_arch: "SingleScalePlainCNN"
+model:
+    name: Restormer
+
+loss:
+    criterion:
+      - name: CharbonnierLoss
+    
+    weights: [1.0]
+
+schedule: 
+    epochs: 1001
+    val_epochs: 10
+    
+    optimizer:
+        name: "Adam"
+        lr: 0.0002
+        betas: [0.9, 0.99]
+        weight_decay: 0
+        
+    lr_scheduler:
+        name: "MultiStepLR"
+        milestones: [700, 850, 920]
+        gamma: 0.1
+        # name: WarmupCosineAnnealingLR_Restart
+        # T_period: [300, 351]
+        # restarts: [300]
+        # weights: [1]
+        # warmup_epochs: 10
+        # warmup_init_lr: !!float 1e-6
+
+logging: 
+    period: 20
+
+ckpt:
+    period: 10
+
+
+work_dir: ./workdir/image_deblurring/restormer
+resume_from: None
